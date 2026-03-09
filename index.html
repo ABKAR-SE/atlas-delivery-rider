@@ -3,647 +3,595 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Atlas Delivery — Rider App</title>
+<title>Atlas Delivery — Rider</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛵</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#06060E;--surface:#0E0E1C;--surface2:#14142A;--surface3:#1A1A30;
-  --border:rgba(0,212,255,0.09);
-  --cyan:#00D4FF;--violet:#7B2FFF;--orange:#FF6B35;--green:#00FF88;
-  --red:#FF3B3B;--yellow:#FFB800;
-  --text:#E8E8F0;--muted:#505068;
-  --font-d:'Syne',sans-serif;--font-b:'DM Sans',sans-serif;--font-m:'JetBrains Mono',monospace
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  background:var(--bg);color:var(--text);font-family:var(--font-b);
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:20px
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(123,47,255,0.06),transparent 60%);
-  pointer-events:none
-}
+:root{--bg:#07070E;--s1:#0F0F1A;--s2:#161625;--s3:#1C1C2E;--border:rgba(0,212,255,.10);--cyan:#00D4FF;--violet:#7B2FFF;--orange:#FF6B35;--green:#00FF88;--red:#FF3B3B;--yellow:#FFB800;--text:#E8E8F0;--muted:#5A5A78;--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--grad:linear-gradient(135deg,#00D4FF,#7B2FFF)}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{background:#13131f;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:var(--fb);}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(123,47,255,.07),transparent 60%)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bounce{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)}}
+@keyframes slidein{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 
-/* ── PHONE SHELL ── */
-.phone{
-  width:390px;height:844px;
-  background:var(--surface);
-  border:1.5px solid rgba(0,212,255,0.12);
-  border-radius:48px;
-  overflow:hidden;
-  position:relative;
-  box-shadow:0 40px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(0,212,255,0.05),inset 0 0 60px rgba(0,0,0,0.3);
-  display:flex;flex-direction:column
-}
+/* PHONE */
+.phone{width:393px;height:852px;background:var(--s1);border:1.5px solid rgba(0,212,255,.12);border-radius:50px;overflow:hidden;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(0,212,255,.04),inset 0 0 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:124px;height:30px;background:var(--bg);border-radius:0 0 22px 22px;z-index:10}
+.statusbar{height:52px;padding:14px 26px 0;display:flex;align-items:center;justify-content:space-between;background:var(--s1);flex-shrink:0;position:relative;z-index:5}
+.st-time{font-family:var(--fm);font-size:13px;font-weight:500}
+.st-icons{display:flex;gap:5px;font-size:11px}
 
-/* ── STATUS BAR ── */
-.status-bar{
-  height:50px;padding:12px 28px 0;
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--surface);flex-shrink:0
-}
-.status-time{font-family:var(--font-m);font-size:13px;font-weight:500}
-.status-icons{display:flex;gap:6px;align-items:center;font-size:12px}
-.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:var(--bg);border-radius:0 0 20px 20px}
-
-/* ── SCREEN ── */
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+/* SCREEN */
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
 .screen::-webkit-scrollbar{display:none}
 
-/* ── HOME SCREEN ── */
-.rider-header{
-  padding:24px 24px 20px;
-  background:linear-gradient(180deg,rgba(123,47,255,0.08) 0%,transparent 100%)
-}
-.rider-greeting{font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:0.1em;margin-bottom:4px}
-.rider-name{font-family:var(--font-d);font-size:22px;font-weight:800}
-.online-toggle{
-  display:flex;align-items:center;gap:10px;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:14px;padding:12px 16px;margin-top:16px;
-  cursor:pointer
-}
-.ot-info{flex:1}
-.ot-label{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
-.ot-status{font-size:15px;font-weight:600;margin-top:2px}
-.pill-toggle{
-  width:52px;height:28px;border-radius:100px;
-  position:relative;transition:background 0.2s;cursor:pointer
-}
-.pill-toggle.on{background:var(--green)}
-.pill-toggle.off{background:var(--surface3)}
-.pill-toggle::after{
-  content:'';position:absolute;
-  top:3px;left:3px;width:22px;height:22px;
-  background:white;border-radius:50%;
-  transition:transform 0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.3)
-}
-.pill-toggle.on::after{transform:translateX(24px)}
+/* NEW ORDER BANNER */
+.new-banner{position:absolute;top:0;left:0;right:0;z-index:50;background:linear-gradient(135deg,var(--s1),var(--s2));border-bottom:2px solid var(--cyan);padding:14px 18px;display:flex;align-items:center;gap:10px;transform:translateY(-100%);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.new-banner.show{transform:translateY(0)}
+.nb-icon{font-size:24px}
+.nb-info{flex:1}
+.nb-tag{font-family:var(--fm);font-size:10px;color:var(--cyan);letter-spacing:.1em}
+.nb-msg{font-size:13px;font-weight:600;margin-top:2px}
+.nb-btn{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);border-radius:7px;padding:5px 11px;font-family:var(--fm);font-size:10px;cursor:pointer;transition:all .15s}
+.nb-btn:hover{background:rgba(0,212,255,.2)}
 
-/* ── STATS ── */
-.stats-mini{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  gap:10px;padding:0 24px 20px
-}
-.stat-m{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:12px;padding:14px 12px;text-align:center
-}
-.stat-m-val{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--cyan)}
-.stat-m-label{font-family:var(--font-m);font-size:9px;color:var(--muted);letter-spacing:0.08em;margin-top:4px}
+/* RIDER PICKER */
+.rider-pick{padding:14px 18px 0}
+.rp-label{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
+.rp-select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--fm);font-size:11px;outline:none;cursor:pointer}
 
-/* ── ORDER CARD ── */
-.section-title{
-  padding:0 24px 12px;
-  font-family:var(--font-m);font-size:10px;color:var(--muted);
-  letter-spacing:0.12em;text-transform:uppercase
-}
-.order-card{
-  margin:0 16px 14px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:18px;overflow:hidden;
-  position:relative
-}
-.order-card::before{
-  content:'';position:absolute;
-  top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--cyan),var(--violet))
-}
-.oc-header{
-  padding:16px 18px 12px;
-  display:flex;justify-content:space-between;align-items:flex-start
-}
-.oc-id{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:0.08em}
-.oc-earn{
-  font-family:var(--font-m);font-size:13px;color:var(--green);font-weight:600
-}
-.oc-rest{
-  font-family:var(--font-d);font-size:16px;font-weight:700;
-  padding:0 18px;margin-bottom:14px
-}
-.oc-route{
-  padding:0 18px 16px;
-  display:flex;flex-direction:column;gap:8px
-}
-.oc-route-item{
-  display:flex;align-items:flex-start;gap:10px;
-  font-size:13px
-}
-.oc-dot{
-  width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px
-}
-.oc-dot.pickup{background:var(--orange)}
-.oc-dot.dropoff{background:var(--green)}
-.oc-route-line{
-  width:1px;height:12px;background:var(--border);margin-left:4px;margin-top:-4px;margin-bottom:-4px;
-}
-.oc-address{font-size:12px;color:var(--muted)}
-.oc-meta{
-  padding:12px 18px;border-top:1px solid var(--border);
-  display:flex;gap:20px
-}
-.oc-meta-item{
-  display:flex;align-items:center;gap:5px;
-  font-family:var(--font-m);font-size:11px;color:var(--muted)
-}
-.oc-actions{padding:0 18px 16px;display:flex;gap:10px}
-.oc-btn{
-  flex:1;padding:12px;border-radius:12px;
-  font-family:var(--font-m);font-size:12px;font-weight:600;
-  letter-spacing:0.04em;cursor:pointer;border:none;transition:all 0.15s
-}
-.oc-accept{background:linear-gradient(135deg,var(--cyan),var(--violet));color:#07070E}
-.oc-accept:hover{opacity:0.85;transform:scale(0.99)}
-.oc-decline{background:rgba(255,59,59,0.1);color:var(--red);border:1px solid rgba(255,59,59,0.2)}
+/* HEADER */
+.rh{padding:18px 18px 12px;background:linear-gradient(180deg,rgba(123,47,255,.08),transparent)}
+.rh-greeting{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px}
+.rh-name{font-family:var(--fd);font-size:22px;font-weight:800}
+.online-row{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin-top:14px;cursor:pointer;transition:border-color .2s}
+.online-row:hover{border-color:rgba(0,212,255,.25)}
+.or-info{flex:1}
+.or-lbl{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.or-status{font-size:14px;font-weight:600;margin-top:2px}
+.pill{width:50px;height:27px;border-radius:100px;position:relative;transition:background .2s;cursor:pointer;flex-shrink:0;border:none}
+.pill.on{background:var(--green)}.pill.off{background:var(--s3)}
+.pill::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.pill.on::after{transform:translateX(23px)}
 
-/* ── ACTIVE DELIVERY ── */
+/* STATS MINI */
+.stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 16px}
+.sm{background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:12px 10px;text-align:center}
+.sm-val{font-family:var(--fd);font-size:20px;font-weight:800;color:var(--cyan)}
+.sm-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:3px}
+
+/* SEC TITLE */
+.sec-title{padding:0 18px 10px;font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+
+/* ORDER CARD */
+.ocard{margin:0 14px 12px;background:var(--s2);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative}
+.ocard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
+.oc-head{padding:13px 15px 8px;display:flex;justify-content:space-between;align-items:flex-start}
+.oc-id{font-family:var(--fm);font-size:10px;color:var(--cyan);letter-spacing:.06em}
+.oc-earn{font-family:var(--fm);font-size:13px;color:var(--green);font-weight:600}
+.oc-rest{font-family:var(--fd);font-size:15px;font-weight:700;padding:0 15px;margin-bottom:10px}
+.oc-route{padding:0 15px 10px;display:flex;flex-direction:column;gap:6px}
+.oc-route-item{display:flex;align-items:flex-start;gap:7px;font-size:12px}
+.rc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.oc-addr{font-size:11px;color:var(--muted);margin-top:1px}
+.oc-meta{padding:9px 15px;border-top:1px solid var(--border);display:flex;gap:14px}
+.oc-meta-item{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:10px;color:var(--muted)}
+.oc-acts{padding:0 14px 13px;display:flex;gap:8px}
+.oc-btn{flex:1;padding:11px;border-radius:11px;font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;border:none;transition:all .15s}
+.oc-accept{background:var(--grad);color:var(--bg)}.oc-accept:hover{opacity:.85}
+.oc-decline{background:rgba(255,59,59,.1);color:var(--red);border:1px solid rgba(255,59,59,.2)}.oc-decline:hover{background:rgba(255,59,59,.2)}
+.no-orders{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 18px;gap:10px;color:var(--muted)}
+.no-icon{font-size:40px}.no-txt{font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-align:center}
+
+/* DELIVERY */
 .delivery-screen{display:none;flex-direction:column;height:100%}
 .delivery-screen.show{display:flex}
-.map-area{
-  flex:1;background:var(--surface2);position:relative;overflow:hidden;
-  background-image:radial-gradient(ellipse at 50% 50%,rgba(0,212,255,0.04),transparent 70%);
-  min-height:280px
-}
-.map-grid-lines{
-  position:absolute;inset:0;
-  background-image:linear-gradient(rgba(0,212,255,0.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,212,255,0.05) 1px,transparent 1px);
-  background-size:32px 32px
-}
+.map-area{flex:1;background:var(--s2);position:relative;overflow:hidden;min-height:270px}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.05) 1px,transparent 1px);background-size:28px 28px}
 .route-svg{position:absolute;inset:0;width:100%;height:100%}
 .map-pin{position:absolute;text-align:center;transform:translateX(-50%)}
-.map-pin-icon{font-size:24px}
-.map-pin-label{font-family:var(--font-m);font-size:9px;color:var(--muted);letter-spacing:0.06em;white-space:nowrap;margin-top:2px}
-.rider-pin{
-  position:absolute;width:20px;height:20px;
-  border-radius:50%;background:var(--cyan);
-  box-shadow:0 0 0 6px rgba(0,212,255,0.15);
-  animation:ping 2s infinite
-}
-@keyframes ping{0%,100%{box-shadow:0 0 0 6px rgba(0,212,255,0.15)}50%{box-shadow:0 0 0 14px rgba(0,212,255,0.05)}}
-.delivery-panel{
-  background:var(--surface);padding:20px 20px 16px;
-  border-top:1px solid var(--border)
-}
-.dp-step{
-  display:flex;align-items:center;gap:12px;
-  margin-bottom:16px
-}
-.dp-step-num{
-  width:32px;height:32px;border-radius:50%;
-  background:linear-gradient(135deg,var(--cyan),var(--violet));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-m);font-size:13px;font-weight:700;color:#07070E;
-  flex-shrink:0
-}
-.dp-step-info{}
-.dp-step-label{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px}
-.dp-step-addr{font-size:14px;font-weight:500}
-.dp-eta{
-  display:flex;justify-content:space-between;align-items:center;
-  background:var(--surface2);border-radius:12px;padding:12px 16px;
-  margin-bottom:14px
-}
+.map-pin-icon{font-size:22px}
+.map-pin-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.06em;margin-top:1px;white-space:nowrap}
+.rdot{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 6px rgba(0,212,255,.15);transform:translate(-50%,-50%);transition:left .8s,top .8s;animation:bounce 2s infinite}
+.dpanel{background:var(--s1);padding:16px 18px 12px;border-top:1px solid var(--border)}
+.dp-step{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.dp-num{width:30px;height:30px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;font-weight:700;color:var(--bg);flex-shrink:0}
+.dp-lbl{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.dp-addr{font-size:13px;font-weight:500}
+.dp-eta{display:flex;justify-content:space-between;background:var(--s2);border-radius:11px;padding:11px 14px;margin-bottom:12px;border:1px solid var(--border)}
 .dp-eta-item{text-align:center}
-.dp-eta-val{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--cyan)}
-.dp-eta-label{font-family:var(--font-m);font-size:9px;color:var(--muted);letter-spacing:0.08em}
-.dp-actions{display:flex;gap:10px}
-.dp-btn{
-  flex:1;padding:13px;border-radius:12px;
-  font-family:var(--font-m);font-size:12px;font-weight:600;
-  letter-spacing:0.04em;cursor:pointer;border:none;transition:all 0.15s
-}
-.dp-primary{background:linear-gradient(135deg,var(--cyan),var(--violet));color:#07070E}
-.dp-primary:hover{opacity:0.85}
-.dp-chat{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.dp-eta-val{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--cyan)}
+.dp-eta-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.08em}
+.dp-btns{display:flex;gap:8px}
+.dp-main{flex:1;padding:12px;border-radius:11px;font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;border:none;background:var(--grad);color:var(--bg);transition:opacity .15s}
+.dp-main:hover{opacity:.85}
+.dp-chat{width:42px;padding:12px;border-radius:11px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.dp-chat:hover{border-color:rgba(0,212,255,.3);color:var(--cyan)}
 
-/* ── BOTTOM NAV ── */
-.bottom-nav{
-  height:72px;padding:0 16px 8px;
-  background:rgba(6,6,14,0.96);
-  border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-around;
-  flex-shrink:0
-}
-.bnav-item{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  cursor:pointer;padding:6px 16px;border-radius:10px;transition:all 0.15s;
-  background:none;border:none;color:var(--muted)
-}
-.bnav-item.active{color:var(--cyan)}
-.bnav-icon{font-size:18px}
-.bnav-label{font-family:var(--font-m);font-size:9px;letter-spacing:0.08em}
+/* HISTORY */
+.hist-item{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.hist-item:last-child{border-bottom:none}
+.hi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.hi-id{font-family:var(--fm);font-size:11px;color:var(--cyan)}
+.hi-earn{font-family:var(--fm);font-size:12px;color:var(--green)}
+.hi-rest{font-size:13px;font-weight:500}
+.hi-meta{font-family:var(--fm);font-size:10px;color:var(--muted);margin-top:3px}
 
-/* ── EARNINGS ── */
-.earn-section{padding:0 24px 20px}
-.earn-card{
-  background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(123,47,255,0.12));
-  border:1px solid rgba(0,212,255,0.2);border-radius:16px;
-  padding:20px;margin-bottom:16px
-}
-.earn-card-label{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
-.earn-card-val{font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--cyan)}
-.earn-card-sub{font-size:12px;color:var(--muted);margin-top:6px}
-.earn-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 0;border-bottom:1px solid var(--border)
-}
-.earn-row:last-child{border-bottom:none}
-.earn-row-info{font-size:13px}
-.earn-row-info small{font-family:var(--font-m);font-size:10px;color:var(--muted);display:block;margin-top:3px}
-.earn-row-val{font-family:var(--font-m);font-size:13px;color:var(--green)}
+/* EARNINGS */
+.earn-hero{margin:0 18px 14px;background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(123,47,255,.12));border:1px solid rgba(0,212,255,.2);border-radius:14px;padding:18px}
+.earn-lbl{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.earn-val{font-family:var(--fd);font-size:34px;font-weight:800;color:var(--cyan)}
+.earn-sub{font-size:11px;color:var(--muted);margin-top:5px}
 
-/* ── NOTIFICATION BANNER ── */
-.new-order-banner{
-  position:absolute;top:0;left:0;right:0;z-index:50;
-  background:linear-gradient(135deg,var(--surface),var(--surface2));
-  border-bottom:2px solid var(--cyan);
-  padding:16px 20px;
-  display:flex;align-items:center;gap:12px;
-  transform:translateY(-100%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1)
-}
-.new-order-banner.show{transform:translateY(0)}
-.nob-icon{font-size:24px}
-.nob-info{flex:1}
-.nob-title{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:0.1em}
-.nob-sub{font-size:13px;font-weight:600;margin-top:2px}
-.nob-close{
-  background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);
-  color:var(--cyan);border-radius:8px;padding:6px 12px;
-  font-family:var(--font-m);font-size:11px;cursor:pointer;border-style:solid
-}
+/* BOTTOM NAV */
+.bnav{height:74px;padding:0 12px 10px;background:rgba(6,6,14,.97);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
+.bn{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 14px;border-radius:9px;transition:all .15s;background:none;border:none;color:var(--muted)}
+.bn.active{color:var(--cyan)}
+.bn-icon{font-size:17px}.bn-lbl{font-family:var(--fm);font-size:8px;letter-spacing:.08em}
+.bn-badge{position:absolute;top:-3px;right:-3px;background:var(--red);color:white;font-family:var(--fm);font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* TOAST */
+.toast{position:absolute;bottom:85px;left:14px;right:14px;z-index:200;background:var(--s1);border:1px solid rgba(0,212,255,.3);border-radius:10px;padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--fm);transform:translateY(120px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateY(0);opacity:1}.td{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0}
+.toast--err{border-color:rgba(255,59,59,.3)}.toast--err .td{background:var(--red);box-shadow:0 0 8px var(--red)}
+.toast--info{border-color:rgba(0,212,255,.3)}.toast--info .td{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+
+/* AUTH */
+.auth-overlay{position:absolute;inset:0;background:var(--bg);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-box{width:100%}
+.auth-tag{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
+.auth-title{font-family:var(--fd);font-size:24px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.afield{margin-bottom:12px}
+.afield label{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
+.ainput{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:var(--fb);font-size:14px;outline:none;transition:border-color .2s}
+.ainput:focus{border-color:rgba(0,212,255,.4)}.ainput::placeholder{color:var(--muted)}
+.aprimary{background:var(--grad);color:var(--bg);font-family:var(--fm);font-weight:600;font-size:12px;letter-spacing:.06em;padding:12px;border-radius:9px;border:none;cursor:pointer;width:100%;transition:opacity .2s;margin-top:4px}
+.aprimary:hover{opacity:.85}
+.aerr{background:rgba(255,59,59,.1);border:1px solid rgba(255,59,59,.25);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--red);display:none;margin-bottom:10px}
+.aerr.show{display:block}
+.auth-skip{font-family:var(--fm);font-size:10px;color:var(--muted);text-align:center;margin-top:12px;cursor:pointer;letter-spacing:.06em}
+.auth-skip:hover{color:var(--cyan)}
+
+@media(max-width:440px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0;border:none}}
 </style>
 </head>
 <body>
-
-<!-- PHONE SHELL -->
 <div class="phone">
   <div class="notch"></div>
+  <div class="statusbar">
+    <div class="st-time" id="stime">--:--</div>
+    <div class="st-icons"><span>📶</span><span>🔋</span></div>
+  </div>
 
-  <!-- STATUS BAR -->
-  <div class="status-bar">
-    <div class="status-time" id="stime">14:33</div>
-    <div class="status-icons">
-      <span>📶</span><span>🔋</span>
+  <!-- AUTH -->
+  <div class="auth-overlay" id="authOv">
+    <div class="auth-box">
+      <div class="auth-tag">Atlas Delivery</div>
+      <div class="auth-title">Rider Login</div>
+      <div class="auth-sub">Logga in för att se uppdrag och spåra dina intäkter.</div>
+      <div class="aerr" id="aerr"></div>
+      <div class="afield"><label>E-post</label><input class="ainput" id="aEmail" type="email" placeholder="rider@atlasdel.se"></div>
+      <div class="afield"><label>Lösenord</label><input class="ainput" id="aPwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="aprimary" id="loginBtn" onclick="doLogin()">LOGGA IN</button>
+      <div class="auth-skip" onclick="skipAuth()">Fortsätt utan konto (demoläge) →</div>
     </div>
   </div>
 
-  <!-- NEW ORDER NOTIFICATION BANNER -->
-  <div class="new-order-banner" id="newOrderBanner">
-    <div class="nob-icon">🔔</div>
-    <div class="nob-info">
-      <div class="nob-title">NY BESTÄLLNING</div>
-      <div class="nob-sub">Norrmalm Sushi → Sveavägen 45</div>
+  <!-- NEW ORDER BANNER -->
+  <div class="new-banner" id="newBanner">
+    <div class="nb-icon">🔔</div>
+    <div class="nb-info">
+      <div class="nb-tag">NY BESTÄLLNING TILLGÄNGLIG</div>
+      <div class="nb-msg" id="bannerMsg">—</div>
     </div>
-    <button class="nob-close" onclick="dismissBanner()">Se</button>
+    <button class="nb-btn" onclick="dismissBanner()">Se →</button>
   </div>
 
   <!-- SCREEN -->
-  <div class="screen" id="mainScreen">
+  <div class="screen" id="screen">
+
     <!-- HOME -->
     <div id="pageHome">
-      <div class="rider-header">
-        <div class="rider-greeting">// VÄLKOMMEN TILLBAKA</div>
-        <div class="rider-name">Marcus K.</div>
-
-        <div class="online-toggle" onclick="toggleOnline()">
-          <div class="ot-info">
-            <div class="ot-label">Tillgänglighet</div>
-            <div class="ot-status" id="onlineStatusText" style="color:var(--green)">Online — redo att leverera</div>
+      <div class="rider-pick">
+        <label class="rp-label">Inloggad som</label>
+        <select class="rp-select" id="riderSel" onchange="switchRider(this.value)"></select>
+      </div>
+      <div class="rh">
+        <div class="rh-greeting">// VÄLKOMMEN TILLBAKA</div>
+        <div class="rh-name" id="riderName">—</div>
+        <div class="online-row" onclick="toggleOnline()">
+          <div class="or-info">
+            <div class="or-lbl">Tillgänglighet</div>
+            <div class="or-status" id="onlineTxt">—</div>
           </div>
-          <div class="pill-toggle on" id="onlineToggle"></div>
+          <button class="pill" id="onlinePill"></button>
         </div>
       </div>
-
-      <div class="stats-mini">
-        <div class="stat-m">
-          <div class="stat-m-val">12</div>
-          <div class="stat-m-label">ORDRAR IDAG</div>
-        </div>
-        <div class="stat-m">
-          <div class="stat-m-val" style="color:var(--green)">680 kr</div>
-          <div class="stat-m-label">IDAG</div>
-        </div>
-        <div class="stat-m">
-          <div class="stat-m-val">4.9 ⭐</div>
-          <div class="stat-m-label">BETYG</div>
-        </div>
-      </div>
-
-      <div class="section-title">Tillgängliga uppdrag</div>
-
-      <!-- ORDER 1 — new -->
-      <div class="order-card" id="orderCard1">
-        <div class="oc-header">
-          <div class="oc-id">ORD-2401</div>
-          <div class="oc-earn">+55 kr</div>
-        </div>
-        <div class="oc-rest">Norrmalm Sushi 🍱</div>
-        <div class="oc-route">
-          <div class="oc-route-item">
-            <div class="oc-dot pickup"></div>
-            <div>
-              <div>Hämta</div>
-              <div class="oc-address">Sveavägen 100, Stockholm</div>
-            </div>
-          </div>
-          <div class="oc-route-line"></div>
-          <div class="oc-route-item">
-            <div class="oc-dot dropoff"></div>
-            <div>
-              <div>Leverera</div>
-              <div class="oc-address">Sveavägen 45, Stockholm</div>
-            </div>
-          </div>
-        </div>
-        <div class="oc-meta">
-          <div class="oc-meta-item">🕐 <span>~18 min</span></div>
-          <div class="oc-meta-item">📍 <span>0.8 km</span></div>
-          <div class="oc-meta-item">📦 <span>355 kr</span></div>
-        </div>
-        <div class="oc-actions">
-          <button class="oc-btn oc-accept" onclick="acceptOrder()">Acceptera uppdraget</button>
-          <button class="oc-btn oc-decline" onclick="declineOrder()">✕</button>
-        </div>
-      </div>
-
-      <!-- ORDER 2 — preview -->
-      <div class="order-card" style="opacity:0.5">
-        <div class="oc-header">
-          <div class="oc-id">ORD-2399</div>
-          <div class="oc-earn">+42 kr</div>
-        </div>
-        <div class="oc-rest">Gamla Stan Pizza 🍕</div>
-        <div class="oc-route">
-          <div class="oc-route-item">
-            <div class="oc-dot pickup"></div>
-            <div><div>Hämta</div><div class="oc-address">Österlånggatan 22, Gamla Stan</div></div>
-          </div>
-          <div class="oc-route-line"></div>
-          <div class="oc-route-item">
-            <div class="oc-dot dropoff"></div>
-            <div><div>Leverera</div><div class="oc-address">Drottninggatan 67</div></div>
-          </div>
-        </div>
-        <div class="oc-meta">
-          <div class="oc-meta-item">🕐 <span>~24 min</span></div>
-          <div class="oc-meta-item">📍 <span>1.4 km</span></div>
-        </div>
-      </div>
+      <div class="stats-mini" id="statsMini"></div>
+      <div class="sec-title">Tillgängliga uppdrag</div>
+      <div id="availOrders"></div>
     </div>
 
-    <!-- ACTIVE DELIVERY PAGE (hidden initially) -->
-    <div id="pageDelivery" style="display:none;flex-direction:column;height:100%">
+    <!-- DELIVERY -->
+    <div id="pageDelivery" class="delivery-screen">
       <div class="map-area">
-        <div class="map-grid-lines"></div>
-        <svg class="route-svg" viewBox="0 0 390 280" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1"/>
-              <stop offset="100%" style="stop-color:#00FF88;stop-opacity:1"/>
-            </linearGradient>
-          </defs>
-          <path d="M 80 200 C 140 180 200 100 280 80 S 340 60 340 60"
-            fill="none" stroke="url(#routeGrad)" stroke-width="3"
-            stroke-dasharray="8 4" opacity="0.7">
-            <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="0.8s" repeatCount="indefinite"/>
+        <div class="map-grid"></div>
+        <svg class="route-svg" viewBox="0 0 393 270" preserveAspectRatio="none">
+          <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#FF6B35"/><stop offset="100%" style="stop-color:#00FF88"/></linearGradient></defs>
+          <path d="M 80 210 C 150 190 210 110 290 80" fill="none" stroke="url(#rg)" stroke-width="3" stroke-dasharray="8 4" opacity=".7">
+            <animate attributeName="stroke-dashoffset" from="0" to="-24" dur=".8s" repeatCount="indefinite"/>
           </path>
-          <!-- dots along path -->
-          <circle cx="80" cy="200" r="5" fill="#FF6B35" opacity="0.6"/>
-          <circle cx="340" cy="60" r="5" fill="#00FF88" opacity="0.6"/>
         </svg>
-        <!-- Pickup pin -->
-        <div class="map-pin" style="left:20%;top:65%">
-          <div class="map-pin-icon">🍱</div>
-          <div class="map-pin-label">HÄMTNING</div>
-        </div>
-        <!-- Dropoff pin -->
-        <div class="map-pin" style="left:85%;top:18%">
-          <div class="map-pin-icon">📍</div>
-          <div class="map-pin-label">LEVERANS</div>
-        </div>
-        <!-- Rider dot (animated) -->
-        <div class="rider-pin" id="riderPin" style="left:38%;top:52%;transform:translate(-50%,-50%)"></div>
+        <div class="map-pin" style="left:20%;top:72%"><div class="map-pin-icon">🍽️</div><div class="map-pin-lbl">HÄMTNING</div></div>
+        <div class="map-pin" style="left:74%;top:22%"><div class="map-pin-icon">📍</div><div class="map-pin-lbl">LEVERANS</div></div>
+        <div class="rdot" id="rdot" style="left:38%;top:52%"></div>
       </div>
-
-      <div class="delivery-panel">
-        <div class="dp-step" id="dpStep">
-          <div class="dp-step-num" id="dpStepNum">1</div>
-          <div class="dp-step-info">
-            <div class="dp-step-label" id="dpStepLabel">HÄMTA ORDER</div>
-            <div class="dp-step-addr" id="dpStepAddr">Sveavägen 100 — Norrmalm Sushi</div>
-          </div>
+      <div class="dpanel">
+        <div class="dp-step">
+          <div class="dp-num" id="dpNum">1</div>
+          <div><div class="dp-lbl" id="dpLbl">HÄMTA ORDER</div><div class="dp-addr" id="dpAddr">—</div></div>
         </div>
         <div class="dp-eta">
-          <div class="dp-eta-item">
-            <div class="dp-eta-val" id="dpEta">7</div>
-            <div class="dp-eta-label">MIN KVAR</div>
-          </div>
-          <div class="dp-eta-item">
-            <div class="dp-eta-val">0.8</div>
-            <div class="dp-eta-label">KM</div>
-          </div>
-          <div class="dp-eta-item">
-            <div class="dp-eta-val" style="color:var(--green)">+55</div>
-            <div class="dp-eta-label">KR</div>
-          </div>
+          <div class="dp-eta-item"><div class="dp-eta-val" id="dpEta">—</div><div class="dp-eta-lbl">MIN KVAR</div></div>
+          <div class="dp-eta-item"><div class="dp-eta-val" id="dpKm">—</div><div class="dp-eta-lbl">KM</div></div>
+          <div class="dp-eta-item"><div class="dp-eta-val" id="dpEarn" style="color:var(--green)">+—</div><div class="dp-eta-lbl">KR</div></div>
         </div>
-        <div class="dp-actions">
-          <button class="dp-btn dp-primary" id="dpMainBtn" onclick="nextDeliveryStep()">Framme — Hämtar order</button>
-          <button class="dp-btn dp-chat" onclick="alert('Chatt — ansluts till backend')">💬</button>
+        <div class="dp-btns">
+          <button class="dp-main" id="dpMainBtn" onclick="nextStep()">Framme — Hämtar order</button>
+          <button class="dp-chat" onclick="toast('Chatt kommer snart!','info')">💬</button>
         </div>
       </div>
     </div>
 
-    <!-- EARNINGS PAGE -->
+    <!-- HISTORY -->
+    <div id="pageHistory" style="display:none">
+      <div class="rh" style="padding-bottom:8px"><div class="rh-greeting">// LEVERANSHISTORIK</div><div class="rh-name" style="font-size:18px">Denna session</div></div>
+      <div id="histList"></div>
+    </div>
+
+    <!-- EARNINGS -->
     <div id="pageEarnings" style="display:none">
-      <div class="rider-header">
-        <div class="rider-greeting">// INTÄKTER</div>
-        <div class="rider-name">Denna vecka</div>
-      </div>
-      <div class="earn-section">
-        <div class="earn-card">
-          <div class="earn-card-label">Total intäkt — Denna vecka</div>
-          <div class="earn-card-val">3 420 kr</div>
-          <div class="earn-card-sub">47 leveranser • Mån–Sön</div>
-        </div>
-        <div style="margin-bottom:12px">
-          ${[
-            ['Idag','12 lever.','680 kr'],
-            ['Igår','9 lever.','510 kr'],
-            ['Måndag','8 lever.','450 kr'],
-            ['Söndag','11 lever.','605 kr'],
-            ['Lördag','7 lever.','392 kr'],
-          ].map(([d,o,v])=>`
-            <div class="earn-row">
-              <div class="earn-row-info">${d}<small>${o}</small></div>
-              <div class="earn-row-val">${v}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
+      <div class="rh" style="padding-bottom:8px"><div class="rh-greeting">// INTÄKTER</div><div class="rh-name" style="font-size:18px">Din plånbok</div></div>
+      <div id="earningsContent"></div>
     </div>
 
-    <!-- PROFILE PAGE -->
-    <div id="pageProfile" style="display:none;padding:24px">
-      <div style="text-align:center;padding:20px 0 28px">
-        <div style="font-size:56px;margin-bottom:12px">🧑‍🦱</div>
-        <div style="font-family:var(--font-d);font-size:22px;font-weight:800">Marcus Karlsson</div>
-        <div style="font-family:var(--font-m);font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.08em">BUD SEDAN: JAN 2026</div>
-        <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px">
-          <span style="font-family:var(--font-m);font-size:13px;color:var(--cyan)">⭐ 4.9</span>
-          <span style="color:var(--muted);font-size:12px">•</span>
-          <span style="font-size:12px;color:var(--muted)">312 leveranser</span>
-        </div>
-      </div>
-      ${[
-        ['📞','Telefon','+46 70 123 456'],
-        ['📍','Aktiv zon','Stockholm, Norrmalm'],
-        ['🚲','Transportmedel','Elcykel'],
-        ['📦','Totala leveranser','312'],
-        ['⭐','Genomsnittsbetyg','4.9 / 5.0'],
-        ['💰','Totalt tjänat','38 200 kr'],
-      ].map(([icon,label,val])=>`
-        <div style="display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--border)">
-          <span style="font-size:18px;width:24px;text-align:center">${icon}</span>
-          <div style="flex:1">
-            <div style="font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:0.08em">${label}</div>
-            <div style="font-size:14px;margin-top:2px">${val}</div>
-          </div>
-        </div>
-      `).join('')}
-      <div style="margin-top:24px;padding:16px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:12px">
-        <div style="font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:0.1em;margin-bottom:8px">// ATLAS VALLEY UPPDRAG</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.6">Som bud i Atlas Delivery bidrar du till ett världsomspännande uppdrag: skapa system för allas välbefinnande — fri mat, rättvis teknik, bättre framtid.</div>
-      </div>
-    </div>
-  </div>
+  </div><!-- /screen -->
 
   <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <button class="bnav-item active" id="bnav0" onclick="showPage('home',0)">
-      <div class="bnav-icon">🏠</div>
-      <div class="bnav-label">HEM</div>
-    </button>
-    <button class="bnav-item" id="bnav1" onclick="showDeliveryPage()">
-      <div class="bnav-icon">🛵</div>
-      <div class="bnav-label">LEVERANS</div>
-    </button>
-    <button class="bnav-item" id="bnav2" onclick="showPage('earnings',2)">
-      <div class="bnav-icon">💰</div>
-      <div class="bnav-label">INTÄKTER</div>
-    </button>
-    <button class="bnav-item" id="bnav3" onclick="showPage('profile',3)">
-      <div class="bnav-icon">👤</div>
-      <div class="bnav-label">PROFIL</div>
-    </button>
+  <div class="bnav">
+    <button class="bn active" id="bn0" onclick="showPage('home',0)"><div class="bn-icon">🏠</div><div class="bn-lbl">HEM</div></button>
+    <button class="bn" id="bn1" onclick="showPage('delivery',1)"><div class="bn-icon" style="position:relative">🛵<span class="bn-badge" id="activeBadge" style="display:none">!</span></div><div class="bn-lbl">LEVERANS</div></button>
+    <button class="bn" id="bn2" onclick="showPage('history',2)"><div class="bn-icon">📋</div><div class="bn-lbl">HISTORIK</div></button>
+    <button class="bn" id="bn3" onclick="showPage('earnings',3)"><div class="bn-icon">💰</div><div class="bn-lbl">INTÄKTER</div></button>
   </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"><div class="td"></div><span id="toastMsg">—</span></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-// ── CLOCK ──
-function tick(){
+const SB = supabase.createClient(
+  'https://vgtdswplzuhbhhlmxrgg.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZndGRzd3BsenVoYmhobG14cmdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTY2ODIsImV4cCI6MjA4ODU5MjY4Mn0.82sk-40cQo7NxeRWUgthTzp_fk1TlBcqPchrBGGIFnU'
+);
+
+// ── State ─────────────────────────────────────────────────────
+let activeRiderId = null;
+let riders        = [];
+let activeOrderId = null;
+let deliveryStep  = 0;
+let currentNav    = 0;
+let availableOrders = [];
+
+// ── Clock ─────────────────────────────────────────────────────
+setInterval(()=>{
   const n=new Date();
-  document.getElementById('stime').textContent=
-    n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+  document.getElementById('stime').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+},1000);
+
+// ── AUTH ──────────────────────────────────────────────────────
+async function doLogin(){
+  const email=document.getElementById('aEmail').value.trim();
+  const pwd=document.getElementById('aPwd').value;
+  const btn=document.getElementById('loginBtn');
+  const err=document.getElementById('aerr');
+  btn.disabled=true; btn.textContent='LOGGAR IN...'; err.className='aerr';
+  const{error}=await SB.auth.signInWithPassword({email,password:pwd});
+  if(error){err.textContent=error.message;err.className='aerr show';btn.disabled=false;btn.textContent='LOGGA IN';return}
+  document.getElementById('authOv').style.display='none';
+  await loadAll();
 }
-tick();setInterval(tick,1000);
-
-// ── ONLINE TOGGLE ──
-let isOnline = true;
-function toggleOnline(){
-  isOnline=!isOnline;
-  const t=document.getElementById('onlineToggle');
-  const s=document.getElementById('onlineStatusText');
-  t.className='pill-toggle '+(isOnline?'on':'off');
-  s.textContent=isOnline?'Online — redo att leverera':'Offline — inte tillgänglig';
-  s.style.color=isOnline?'var(--green)':'var(--muted)';
-}
-
-// ── PAGE NAV ──
-let deliveryActive = false;
-let deliveryStep = 1;
-
-function showPage(page, idx){
-  ['home','delivery','earnings','profile'].forEach(p=>{
-    const el=document.getElementById('page'+p.charAt(0).toUpperCase()+p.slice(1));
-    if(el) el.style.display='none';
-  });
-  const target=document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1));
-  if(target) target.style.display=page==='delivery'?'flex':'block';
-  document.querySelectorAll('.bnav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
+async function skipAuth(){
+  document.getElementById('authOv').style.display='none';
+  await loadAll();
 }
 
-function showDeliveryPage(){
-  if(!deliveryActive){
-    document.querySelectorAll('.bnav-item').forEach((b,i)=>b.classList.toggle('active',i===1));
-    // show home with orders
-    showPage('home',0);
-    document.querySelectorAll('.bnav-item').forEach((b,i)=>b.classList.toggle('active',i===1));
+// ── LOAD ──────────────────────────────────────────────────────
+async function loadAll(){
+  const{data,error}=await SB.from('riders').select('*').order('name');
+  if(error){toast('DB-fel: '+error.message,'err');return}
+  riders=data||[];
+  if(!riders.length){toast('Inga bud i DB','err');return}
+
+  const sel=document.getElementById('riderSel');
+  sel.innerHTML=riders.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  activeRiderId=riders[0].id;
+  renderHome();
+
+  // Realtime: watch for new "ready" orders
+  SB.channel('rider-rt')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'},p=>{
+      // New order placed — may become available soon
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders'},p=>{
+      if(p.new.status==='ready'&&!p.new.rider_id){
+        onAvailableOrder(p.new);
+      }
+      // If this is our active order being updated externally
+      if(p.new.rider_id===activeRiderId&&p.new.status==='picked'&&!activeOrderId){
+        activeOrderId=p.new.id;
+        document.getElementById('activeBadge').style.display='';
+      }
+      if(p.new.id===activeOrderId&&p.new.status==='delivered'){
+        activeOrderId=null;
+        document.getElementById('activeBadge').style.display='none';
+      }
+      refreshAvailOrders();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'riders'},p=>{
+      riders=riders.map(r=>r.id===p.new.id?p.new:r);
+      if(p.new.id===activeRiderId) renderHome();
+    })
+    .subscribe();
+
+  // Load available orders (status=ready, no rider)
+  await refreshAvailOrders();
+}
+
+async function refreshAvailOrders(){
+  const{data}=await SB.from('orders').select('*,restaurants(name,emoji)').eq('status','ready').is('rider_id',null);
+  availableOrders=data||[];
+  if(currentNav===0) renderAvailableOrders();
+}
+
+function switchRider(id){
+  activeRiderId=id;
+  activeOrderId=null;
+  deliveryStep=0;
+  renderHome();
+}
+
+// ── HOME ──────────────────────────────────────────────────────
+function renderHome(){
+  const rider=riders.find(r=>r.id===activeRiderId);
+  if(!rider)return;
+  document.getElementById('riderName').textContent=rider.name;
+  const pill=document.getElementById('onlinePill');
+  const otxt=document.getElementById('onlineTxt');
+  pill.className='pill '+(rider.is_online?'on':'off');
+  otxt.textContent=rider.is_online?'Online — redo att leverera':'Offline — inte tillgänglig';
+  otxt.style.color=rider.is_online?'var(--green)':'var(--muted)';
+  document.getElementById('statsMini').innerHTML=`
+    <div class="sm"><div class="sm-val">${rider.orders_today}</div><div class="sm-lbl">IDAG</div></div>
+    <div class="sm"><div class="sm-val" style="color:var(--green)">${Number(rider.earnings_today).toFixed(0)} kr</div><div class="sm-lbl">INTÄKTER</div></div>
+    <div class="sm"><div class="sm-val">⭐${rider.rating}</div><div class="sm-lbl">BETYG</div></div>`;
+  renderAvailableOrders();
+}
+
+function renderAvailableOrders(){
+  const rider=riders.find(r=>r.id===activeRiderId);
+  const el=document.getElementById('availOrders');
+  if(!rider?.is_online){
+    el.innerHTML='<div class="no-orders"><div class="no-icon">😴</div><div class="no-txt">GÅ ONLINE FÖR ATT SE UPPDRAG</div></div>';
     return;
   }
-  showPage('delivery',1);
-}
-
-// ── ACCEPT ORDER ──
-function acceptOrder(){
-  deliveryActive=true;
-  deliveryStep=1;
-  document.getElementById('orderCard1').style.display='none';
-  showPage('delivery',1);
-}
-
-function declineOrder(){
-  const c=document.getElementById('orderCard1');
-  c.style.opacity='0';c.style.transform='translateX(-20px)';
-  c.style.transition='all 0.3s';
-  setTimeout(()=>c.style.display='none',300);
-}
-
-// ── DELIVERY STEPS ──
-const steps=[
-  {num:1,label:'HÄMTA ORDER',addr:'Sveavägen 100 — Norrmalm Sushi',btn:'Framme — Hämtar order',eta:7},
-  {num:2,label:'LEVERERA',addr:'Sveavägen 45 — Erik Lindgren',btn:'Leverans klar ✓',eta:11},
-];
-let stepIdx=0;
-
-function nextDeliveryStep(){
-  stepIdx++;
-  if(stepIdx>=steps.length){
-    deliveryActive=false;
-    deliveryStep=1;stepIdx=0;
-    showPage('home',0);
-    document.getElementById('orderCard1').style.display='';
-    document.getElementById('orderCard1').style.opacity='1';
-    document.getElementById('orderCard1').style.transform='';
-    alert('✅ Leverans genomförd! +55 kr tillagda i din plånbok.');
+  if(!availableOrders.length){
+    el.innerHTML='<div class="no-orders"><div class="no-icon">🛵</div><div class="no-txt">VÄNTAR PÅ UPPDRAG...<br><span style="opacity:.5;font-size:9px;margin-top:4px;display:block">Restauranger markerar ordrar klara</span></div></div>';
     return;
   }
-  const s=steps[stepIdx];
-  document.getElementById('dpStepNum').textContent=s.num;
-  document.getElementById('dpStepLabel').textContent=s.label;
-  document.getElementById('dpStepAddr').textContent=s.addr;
-  document.getElementById('dpMainBtn').textContent=s.btn;
-  document.getElementById('dpEta').textContent=s.eta;
-  // move rider pin
-  const pin=document.getElementById('riderPin');
-  pin.style.left=stepIdx===0?'38%':'72%';
-  pin.style.top=stepIdx===0?'52%':'25%';
+  el.innerHTML=availableOrders.map(o=>orderCardHTML(o)).join('');
 }
 
-// ── DISMISS BANNER ──
+function orderCardHTML(o){
+  const earn=Math.round(Number(o.total)*.15);
+  const km=(0.5+Math.random()*1.5).toFixed(1);
+  const mins=Math.round(parseFloat(km)*5+5);
+  const rest=o.restaurants||{name:o.restaurant_id,emoji:'🍽️'};
+  return`<div class="ocard">
+    <div class="oc-head"><div class="oc-id">${o.id}</div><div class="oc-earn">+${earn} kr</div></div>
+    <div class="oc-rest">${rest.emoji} ${rest.name}</div>
+    <div class="oc-route">
+      <div class="oc-route-item"><div class="rc-dot" style="background:var(--orange)"></div><div><div>Hämta</div><div class="oc-addr">${rest.name}</div></div></div>
+      <div style="width:1px;height:8px;background:var(--border);margin-left:4px"></div>
+      <div class="oc-route-item"><div class="rc-dot" style="background:var(--green)"></div><div><div>Leverera till</div><div class="oc-addr">${o.address}</div></div></div>
+    </div>
+    <div class="oc-meta"><div class="oc-meta-item">🕐 ~${mins} min</div><div class="oc-meta-item">📍 ${km} km</div><div class="oc-meta-item">📦 ${Number(o.total).toFixed(0)} kr</div></div>
+    <div class="oc-acts">
+      <button class="oc-btn oc-accept" onclick="acceptOrder('${o.id}',${earn})">Acceptera uppdraget</button>
+      <button class="oc-btn oc-decline" onclick="declineOrder('${o.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
+// ── ACCEPT / DECLINE ──────────────────────────────────────────
+async function acceptOrder(orderId, earn){
+  // Assign rider_id and update status to 'picked'
+  const{error}=await SB.from('orders').update({rider_id:activeRiderId,status:'picked'}).eq('id',orderId);
+  if(error){toast(error.message,'err');return}
+  // Update rider status
+  await SB.from('riders').update({status:'delivering'}).eq('id',activeRiderId);
+
+  activeOrderId=orderId;
+  deliveryStep=0;
+  document.getElementById('activeBadge').style.display='';
+  availableOrders=availableOrders.filter(o=>o.id!==orderId);
+  showPage('delivery',1);
+  toast(`✓ Uppdrag accepterat!`,'info');
+}
+
+function declineOrder(orderId){
+  availableOrders=availableOrders.filter(o=>o.id!==orderId);
+  renderAvailableOrders();
+}
+
+// ── DELIVERY ──────────────────────────────────────────────────
+async function renderDelivery(){
+  if(!activeOrderId){
+    document.getElementById('dpAddr').textContent='Ingen aktiv order';
+    document.getElementById('dpMainBtn').textContent='Gå till hem';
+    document.getElementById('dpEta').textContent='—';
+    document.getElementById('dpKm').textContent='—';
+    document.getElementById('dpEarn').textContent='+—';
+    return;
+  }
+  const{data:order}=await SB.from('orders').select('*,restaurants(name,emoji)').eq('id',activeOrderId).single();
+  if(!order)return;
+  const earn=Math.round(Number(order.total)*.15);
+  document.getElementById('dpEarn').textContent='+'+earn;
+  document.getElementById('dpKm').textContent=(0.6+Math.random()).toFixed(1);
+  if(deliveryStep===0){
+    document.getElementById('dpNum').textContent='1';
+    document.getElementById('dpLbl').textContent='HÄMTA ORDER';
+    document.getElementById('dpAddr').textContent=(order.restaurants?.name||'Restaurangen')+' — Gå dit för att hämta';
+    document.getElementById('dpMainBtn').textContent='Framme — Hämtar order';
+    document.getElementById('dpEta').textContent='7';
+    document.getElementById('rdot').style.left='38%';
+    document.getElementById('rdot').style.top='52%';
+  } else {
+    document.getElementById('dpNum').textContent='2';
+    document.getElementById('dpLbl').textContent='LEVERERA';
+    document.getElementById('dpAddr').textContent=order.address+' — '+order.customer_name;
+    document.getElementById('dpMainBtn').textContent='Leverans klar ✓';
+    document.getElementById('dpEta').textContent='11';
+    document.getElementById('rdot').style.left='66%';
+    document.getElementById('rdot').style.top='36%';
+  }
+}
+
+async function nextStep(){
+  if(!activeOrderId){showPage('home',0);return}
+  if(deliveryStep===0){
+    deliveryStep=1;
+    renderDelivery();
+  } else {
+    // Complete delivery
+    const{data:order}=await SB.from('orders').select('total').eq('id',activeOrderId).single();
+    const earn=Math.round(Number(order?.total||0)*.15);
+    await SB.from('orders').update({status:'delivered'}).eq('id',activeOrderId);
+    const rider=riders.find(r=>r.id===activeRiderId);
+    await SB.from('riders').update({
+      status:'idle',
+      orders_today:(rider?.orders_today||0)+1,
+      earnings_today:Number(rider?.earnings_today||0)+earn,
+    }).eq('id',activeRiderId);
+    // Update local state
+    riders=riders.map(r=>r.id===activeRiderId?{...r,orders_today:r.orders_today+1,earnings_today:Number(r.earnings_today)+earn,status:'idle'}:r);
+    activeOrderId=null;
+    deliveryStep=0;
+    document.getElementById('activeBadge').style.display='none';
+    showPage('home',0);
+    showBanner(`✅ Levererad! +${earn} kr tillagda.`);
+    renderHome();
+  }
+}
+
+// ── TOGGLE ONLINE ─────────────────────────────────────────────
+async function toggleOnline(){
+  const rider=riders.find(r=>r.id===activeRiderId);
+  if(!rider)return;
+  const{error}=await SB.from('riders').update({is_online:!rider.is_online,status:!rider.is_online?'idle':'offline'}).eq('id',activeRiderId);
+  if(error){toast(error.message,'err');return}
+  riders=riders.map(r=>r.id===activeRiderId?{...r,is_online:!rider.is_online,status:!rider.is_online?'idle':'offline'}:r);
+  renderHome();
+  if(!rider.is_online) await refreshAvailOrders();
+}
+
+// ── HISTORY ───────────────────────────────────────────────────
+async function renderHistory(){
+  const el=document.getElementById('histList');
+  el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px"><div style="width:16px;height:16px;border:2px solid rgba(0,212,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px"></div>LADDAR...</div>';
+  const{data}=await SB.from('orders').select('*,restaurants(name,emoji)').eq('rider_id',activeRiderId).eq('status','delivered').order('updated_at',{ascending:false}).limit(30);
+  const orders=data||[];
+  if(!orders.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px">INGA LEVERANSER ÄN</div>';return}
+  el.innerHTML=orders.map(o=>{
+    const e=Math.round(Number(o.total)*.15);
+    const rest=o.restaurants||{name:'—',emoji:'🍽️'};
+    return`<div class="hist-item">
+      <div class="hi-top"><div class="hi-id">${o.id}</div><div class="hi-earn">+${e} kr</div></div>
+      <div class="hi-rest">${rest.emoji} ${rest.name}</div>
+      <div class="hi-meta">📍 ${o.address} • 🕐 ${new Date(o.created_at).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── EARNINGS ──────────────────────────────────────────────────
+async function renderEarnings(){
+  const rider=riders.find(r=>r.id===activeRiderId);
+  const{data:delivered}=await SB.from('orders').select('total,created_at').eq('rider_id',activeRiderId).eq('status','delivered');
+  const sessionEarn=(delivered||[]).reduce((s,o)=>s+Math.round(Number(o.total)*.15),0);
+  document.getElementById('earningsContent').innerHTML=`
+    <div class="earn-hero">
+      <div class="earn-lbl">Totalt idag</div>
+      <div class="earn-val">${Number(rider?.earnings_today||0).toFixed(0)} kr</div>
+      <div class="earn-sub">${rider?.orders_today||0} leveranser</div>
+    </div>
+    <div class="earn-hero" style="background:rgba(0,255,136,.05);border-color:rgba(0,255,136,.15)">
+      <div class="earn-lbl">Denna session</div>
+      <div class="earn-val" style="font-size:26px">${sessionEarn} kr</div>
+      <div class="earn-sub">${(delivered||[]).length} leveranser genomförda</div>
+    </div>
+    ${!(delivered||[]).length?'<div style="padding:28px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px">GENOMFÖR LEVERANSER FÖR ATT SE INTÄKTER</div>':''}`;
+}
+
+// ── PAGES ─────────────────────────────────────────────────────
+function showPage(name,idx){
+  document.getElementById('pageHome').style.display='none';
+  const pd=document.getElementById('pageDelivery');
+  pd.style.display='none'; pd.classList.remove('show');
+  document.getElementById('pageHistory').style.display='none';
+  document.getElementById('pageEarnings').style.display='none';
+
+  currentNav=idx;
+  document.querySelectorAll('.bn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+
+  if(name==='home'){document.getElementById('pageHome').style.display='block';renderHome()}
+  else if(name==='delivery'){pd.style.display='flex';pd.classList.add('show');renderDelivery()}
+  else if(name==='history'){document.getElementById('pageHistory').style.display='block';renderHistory()}
+  else if(name==='earnings'){document.getElementById('pageEarnings').style.display='block';renderEarnings()}
+}
+
+// ── BANNER ────────────────────────────────────────────────────
+function onAvailableOrder(order){
+  const rider=riders.find(r=>r.id===activeRiderId);
+  if(!rider?.is_online)return;
+  availableOrders.push(order);
+  showBanner(`${order.restaurant_id} → ${order.address}`);
+  if(currentNav===0) renderAvailableOrders();
+}
+function showBanner(msg){
+  document.getElementById('bannerMsg').textContent=msg;
+  const el=document.getElementById('newBanner');
+  el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),5000);
+}
 function dismissBanner(){
-  document.getElementById('newOrderBanner').classList.remove('show');
+  document.getElementById('newBanner').classList.remove('show');
+  showPage('home',0);
 }
 
-// ── BANNER TIMING ──
-setTimeout(()=>{
-  document.getElementById('newOrderBanner').classList.add('show');
-  setTimeout(()=>document.getElementById('newOrderBanner').classList.remove('show'),4000);
-},2000);
+// ── TOAST ─────────────────────────────────────────────────────
+let _tt;
+function toast(msg,type=''){
+  document.getElementById('toastMsg').textContent=msg;
+  const el=document.getElementById('toast');
+  el.className='toast'+(type?` toast--${type}`:'');
+  el.classList.add('show');clearTimeout(_tt);
+  _tt=setTimeout(()=>el.classList.remove('show'),3200);
+}
 </script>
 </body>
 </html>

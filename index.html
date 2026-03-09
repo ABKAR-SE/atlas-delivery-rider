@@ -212,7 +212,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
       <div class="afield"><label>E-post</label><input class="ainput" id="aEmail" type="email" placeholder="rider@atlasdel.se"></div>
       <div class="afield"><label>Lösenord</label><input class="ainput" id="aPwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="aprimary" id="loginBtn" onclick="doLogin()">LOGGA IN</button>
-      <div class="auth-skip" onclick="skipAuth()">Fortsätt utan konto (demoläge) →</div>
     </div>
   </div>
 
@@ -367,10 +366,6 @@ async function doLogin(){
   btn.disabled=true;btn.textContent='LOGGAR IN...';err.className='aerr';
   const{error}=await SB.auth.signInWithPassword({email,password:pwd});
   if(error){err.textContent=error.message;err.className='aerr show';btn.disabled=false;btn.textContent='LOGGA IN';return;}
-  document.getElementById('authOv').style.display='none';
-  await loadAll();
-}
-async function skipAuth(){
   document.getElementById('authOv').style.display='none';
   await loadAll();
 }

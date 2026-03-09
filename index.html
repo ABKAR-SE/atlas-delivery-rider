@@ -123,7 +123,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 .cust-marker{width:34px;height:34px;border-radius:50%;background:rgba(0,255,136,.12);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 10px rgba(0,0,0,.4)}
 
 /* Map legend */
-.map-legend{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(8,8,20,.88);border:1px solid var(--border);border-radius:9px;padding:7px 11px;display:flex;flex-direction:column;gap:5px;backdrop-filter:blur(8px)}
+.map-legend{position:absolute;top:10px;left:10px;z-index:500;background:rgba(8,8,20,.88);border:1px solid var(--border);border-radius:9px;padding:7px 11px;display:flex;flex-direction:column;gap:5px;backdrop-filter:blur(8px)}
 .ml-item{display:flex;align-items:center;gap:7px;font-family:var(--fm);font-size:9px;color:var(--text2);letter-spacing:.05em}
 .ml-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
@@ -487,20 +487,45 @@ function declineOrder(orderId){
 
 // ── GPS ──────────────────────────────────────────────────────
 function requestGPS(){
-  if(!navigator.geolocation){toast('GPS inte tillgänglig','err');return;}
-  document.getElementById('gpsBanner').style.display='none';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    gpsEnabled=true;
-    riderLatLng=[pos.coords.latitude,pos.coords.longitude];
-    moveRiderMarker(riderLatLng);
-    startGPSWatch();
-    toast('GPS aktiverat! 📍','ok');
-  }, ()=>{
-    // fallback: use Stockholm
-    riderLatLng=[...STOCKHOLM];
-    moveRiderMarker(riderLatLng);
-    toast('GPS ej tillgänglig — använder Stockholm','info');
-  },{enableHighAccuracy:true,timeout:8000});
+  if(!navigator.geolocation){toast('Din webbläsare stöder inte GPS','err');return;}
+  const banner=document.getElementById('gpsBanner');
+  banner.innerHTML='<span style="font-size:18px">⏳</span><div class="gps-banner-txt">Hämtar position — tillåt åtkomst om webbläsaren frågar...</div>';
+  banner.style.display='flex';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      gpsEnabled=true;
+      riderLatLng=[pos.coords.latitude,pos.coords.longitude];
+      moveRiderMarker(riderLatLng);
+      startGPSWatch();
+      banner.style.display='none';
+      toast('GPS aktiverat! 📍','ok');
+    },
+    err=>{
+      if(err.code===1){
+        banner.innerHTML='<span style="font-size:16px">🔒</span><div class="gps-banner-txt" style="font-size:10px;line-height:1.6">Platsbehörighet nekad.<br>Gå till <b>Inställningar → Webbläsare → Plats</b> och tillåt den här sidan.</div>';
+      } else if(err.code===2){
+        banner.innerHTML='<span style="font-size:18px">⏳</span><div class="gps-banner-txt">Försöker med lägre precision...</div>';
+        navigator.geolocation.getCurrentPosition(
+          pos=>{
+            gpsEnabled=true;
+            riderLatLng=[pos.coords.latitude,pos.coords.longitude];
+            moveRiderMarker(riderLatLng);
+            startGPSWatch();
+            banner.style.display='none';
+            toast('GPS aktiverat 📍','ok');
+          },
+          ()=>{
+            banner.innerHTML='<span style="font-size:18px">📍</span><div class="gps-banner-txt">Potrebbe non essere disponibile il GPS.</div><button class="gps-btn" onclick="requestGPS()">Försök igen</button>';
+          },
+          {enableHighAccuracy:false,timeout:14000,maximumAge:0}
+        );
+        return;
+      } else {
+        banner.innerHTML='<span style="font-size:18px">⏰</span><div class="gps-banner-txt">GPS tog för lång tid. Kontrollera platsbehörighet.</div><button class="gps-btn" onclick="requestGPS()">Försök igen</button>';
+      }
+    },
+    {enableHighAccuracy:true,timeout:16000,maximumAge:0}
+  );
 }
 
 function startGPSWatch(){

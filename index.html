@@ -6,61 +6,72 @@
 <title>Atlas Delivery — Rider</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛵</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--bg:#07070E;--s1:#0F0F1A;--s2:#161625;--s3:#1C1C2E;--border:rgba(0,212,255,.10);--cyan:#00D4FF;--violet:#7B2FFF;--orange:#FF6B35;--green:#00FF88;--red:#FF3B3B;--yellow:#FFB800;--text:#E8E8F0;--muted:#5A5A78;--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--grad:linear-gradient(135deg,#00D4FF,#7B2FFF)}
+:root{
+  --bg:#07070E;--s1:#0F0F1A;--s2:#161625;--s3:#1C1C2E;
+  --border:rgba(0,212,255,.10);
+  --cyan:#00D4FF;--violet:#7B2FFF;--orange:#FF6B35;
+  --green:#00FF88;--red:#FF3B3B;--yellow:#FFB800;
+  --text:#E8E8F0;--text2:#B0B0C8;--muted:#5A5A78;
+  --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;
+  --grad:linear-gradient(135deg,#00D4FF,#7B2FFF)
+}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-body{background:#13131f;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:var(--fb);}
+body{background:#10101A;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:var(--fb);color:var(--text)}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(123,47,255,.07),transparent 60%)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes bounce{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)}}
-@keyframes slidein{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+@keyframes riderPulse{0%,100%{box-shadow:0 0 0 4px rgba(0,212,255,.25),0 4px 12px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 10px rgba(0,212,255,.08),0 4px 12px rgba(0,0,0,.5)}}
 
 /* PHONE */
-.phone{width:393px;height:852px;background:var(--s1);border:1.5px solid rgba(0,212,255,.12);border-radius:50px;overflow:hidden;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(0,212,255,.04),inset 0 0 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
-.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:124px;height:30px;background:var(--bg);border-radius:0 0 22px 22px;z-index:10}
-.statusbar{height:52px;padding:14px 26px 0;display:flex;align-items:center;justify-content:space-between;background:var(--s1);flex-shrink:0;position:relative;z-index:5}
-.st-time{font-family:var(--fm);font-size:13px;font-weight:500}
-.st-icons{display:flex;gap:5px;font-size:11px}
+.phone{width:393px;height:852px;background:var(--s1);border:1.5px solid rgba(0,212,255,.14);border-radius:50px;overflow:hidden;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.7),inset 0 0 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:124px;height:30px;background:var(--bg);border-radius:0 0 22px 22px;z-index:20}
+
+/* STATUSBAR */
+.statusbar{height:52px;padding:14px 26px 0;display:flex;align-items:center;justify-content:space-between;background:var(--s1);flex-shrink:0;z-index:10}
+.st-time{font-family:var(--fm);font-size:13px;font-weight:600;color:var(--text)}
+.st-icons{font-size:12px;color:var(--text)}
 
 /* SCREEN */
 .screen{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
 .screen::-webkit-scrollbar{display:none}
 
-/* NEW ORDER BANNER */
-.new-banner{position:absolute;top:0;left:0;right:0;z-index:50;background:linear-gradient(135deg,var(--s1),var(--s2));border-bottom:2px solid var(--cyan);padding:14px 18px;display:flex;align-items:center;gap:10px;transform:translateY(-100%);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+/* BANNER */
+.new-banner{position:absolute;top:0;left:0;right:0;z-index:50;background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(123,47,255,.12));border-bottom:1px solid rgba(0,212,255,.3);padding:14px 18px;display:flex;align-items:center;gap:10px;transform:translateY(-110%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(12px)}
 .new-banner.show{transform:translateY(0)}
 .nb-icon{font-size:24px}
 .nb-info{flex:1}
 .nb-tag{font-family:var(--fm);font-size:10px;color:var(--cyan);letter-spacing:.1em}
-.nb-msg{font-size:13px;font-weight:600;margin-top:2px}
-.nb-btn{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);border-radius:7px;padding:5px 11px;font-family:var(--fm);font-size:10px;cursor:pointer;transition:all .15s}
-.nb-btn:hover{background:rgba(0,212,255,.2)}
+.nb-msg{font-size:13px;font-weight:600;color:var(--text);margin-top:2px}
+.nb-btn{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);color:var(--cyan);border-radius:7px;padding:5px 11px;font-family:var(--fm);font-size:10px;cursor:pointer;transition:all .15s}
 
 /* RIDER PICKER */
 .rider-pick{padding:14px 18px 0}
 .rp-label{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
 .rp-select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--fm);font-size:11px;outline:none;cursor:pointer}
+.rp-select option{background:var(--s2);color:var(--text)}
 
 /* HEADER */
 .rh{padding:18px 18px 12px;background:linear-gradient(180deg,rgba(123,47,255,.08),transparent)}
 .rh-greeting{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px}
-.rh-name{font-family:var(--fd);font-size:22px;font-weight:800}
+.rh-name{font-family:var(--fd);font-size:22px;font-weight:800;color:var(--text)}
 .online-row{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin-top:14px;cursor:pointer;transition:border-color .2s}
-.online-row:hover{border-color:rgba(0,212,255,.25)}
+.online-row:hover{border-color:rgba(0,212,255,.3)}
 .or-info{flex:1}
 .or-lbl{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
 .or-status{font-size:14px;font-weight:600;margin-top:2px}
-.pill{width:50px;height:27px;border-radius:100px;position:relative;transition:background .2s;cursor:pointer;flex-shrink:0;border:none}
+.pill{width:50px;height:27px;border-radius:100px;position:relative;transition:background .2s;cursor:pointer;flex-shrink:0;border:none;outline:none}
 .pill.on{background:var(--green)}.pill.off{background:var(--s3)}
 .pill::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
 .pill.on::after{transform:translateX(23px)}
 
-/* STATS MINI */
+/* STATS */
 .stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 16px}
 .sm{background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:12px 10px;text-align:center}
 .sm-val{font-family:var(--fd);font-size:20px;font-weight:800;color:var(--cyan)}
-.sm-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:3px}
+.sm-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:3px;text-transform:uppercase}
 
 /* SEC TITLE */
 .sec-title{padding:0 18px 10px;font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
@@ -71,43 +82,65 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 .oc-head{padding:13px 15px 8px;display:flex;justify-content:space-between;align-items:flex-start}
 .oc-id{font-family:var(--fm);font-size:10px;color:var(--cyan);letter-spacing:.06em}
 .oc-earn{font-family:var(--fm);font-size:13px;color:var(--green);font-weight:600}
-.oc-rest{font-family:var(--fd);font-size:15px;font-weight:700;padding:0 15px;margin-bottom:10px}
+.oc-rest{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--text);padding:0 15px;margin-bottom:10px}
 .oc-route{padding:0 15px 10px;display:flex;flex-direction:column;gap:6px}
-.oc-route-item{display:flex;align-items:flex-start;gap:7px;font-size:12px}
+.oc-route-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--text)}
 .rc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.oc-addr{font-size:11px;color:var(--muted);margin-top:1px}
+.oc-addr{font-size:11px;color:var(--text2);margin-top:1px}
 .oc-meta{padding:9px 15px;border-top:1px solid var(--border);display:flex;gap:14px}
-.oc-meta-item{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:10px;color:var(--muted)}
+.oc-meta-item{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:10px;color:var(--text2)}
 .oc-acts{padding:0 14px 13px;display:flex;gap:8px}
 .oc-btn{flex:1;padding:11px;border-radius:11px;font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;border:none;transition:all .15s}
 .oc-accept{background:var(--grad);color:var(--bg)}.oc-accept:hover{opacity:.85}
-.oc-decline{background:rgba(255,59,59,.1);color:var(--red);border:1px solid rgba(255,59,59,.2)}.oc-decline:hover{background:rgba(255,59,59,.2)}
-.no-orders{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 18px;gap:10px;color:var(--muted)}
-.no-icon{font-size:40px}.no-txt{font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-align:center}
+.oc-decline{background:rgba(255,59,59,.1);color:var(--red);border:1px solid rgba(255,59,59,.2)}
 
-/* DELIVERY */
+/* NO ORDERS */
+.no-orders{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 18px;gap:10px;color:var(--muted)}
+.no-icon{font-size:40px}
+.no-txt{font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-align:center;line-height:1.9;color:var(--muted)}
+
+/* DELIVERY SCREEN */
 .delivery-screen{display:none;flex-direction:column;height:100%}
 .delivery-screen.show{display:flex}
-.map-area{flex:1;background:var(--s2);position:relative;overflow:hidden;min-height:270px}
-.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.05) 1px,transparent 1px);background-size:28px 28px}
-.route-svg{position:absolute;inset:0;width:100%;height:100%}
-.map-pin{position:absolute;text-align:center;transform:translateX(-50%)}
-.map-pin-icon{font-size:22px}
-.map-pin-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.06em;margin-top:1px;white-space:nowrap}
-.rdot{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 6px rgba(0,212,255,.15);transform:translate(-50%,-50%);transition:left .8s,top .8s;animation:bounce 2s infinite}
-.dpanel{background:var(--s1);padding:16px 18px 12px;border-top:1px solid var(--border)}
-.dp-step{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+
+/* GPS BANNER */
+.gps-banner{background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.22);border-radius:10px;margin:10px 14px 0;padding:10px 13px;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.gps-banner-txt{flex:1;font-size:11px;color:var(--text2);line-height:1.5}
+.gps-btn{background:rgba(255,184,0,.15);border:1px solid rgba(255,184,0,.28);color:var(--yellow);border-radius:7px;padding:5px 10px;font-family:var(--fm);font-size:10px;cursor:pointer;white-space:nowrap;transition:all .15s;letter-spacing:.04em}
+.gps-btn:hover{background:rgba(255,184,0,.25)}
+
+/* LEAFLET */
+#lmap{flex:1;min-height:260px;position:relative;z-index:1}
+.leaflet-tile{filter:brightness(.65) saturate(.5) hue-rotate(195deg)}
+.leaflet-container{background:#0a0a14}
+.leaflet-popup-content-wrapper{background:var(--s1);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--fm);font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.leaflet-popup-tip{background:var(--s1)}
+.leaflet-popup-close-button{color:var(--muted)!important}
+
+/* Custom map markers */
+.rider-marker{width:36px;height:36px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 0 4px rgba(0,212,255,.2),0 4px 12px rgba(0,0,0,.5);border:2px solid rgba(0,212,255,.5);animation:riderPulse 2s infinite}
+.rest-marker{width:34px;height:34px;border-radius:10px;background:rgba(255,107,53,.18);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.cust-marker{width:34px;height:34px;border-radius:50%;background:rgba(0,255,136,.12);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+
+/* Map legend */
+.map-legend{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(8,8,20,.88);border:1px solid var(--border);border-radius:9px;padding:7px 11px;display:flex;flex-direction:column;gap:5px;backdrop-filter:blur(8px)}
+.ml-item{display:flex;align-items:center;gap:7px;font-family:var(--fm);font-size:9px;color:var(--text2);letter-spacing:.05em}
+.ml-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* DELIVERY PANEL */
+.dpanel{background:var(--s1);padding:14px 16px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.dp-step{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .dp-num{width:30px;height:30px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;font-weight:700;color:var(--bg);flex-shrink:0}
 .dp-lbl{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
-.dp-addr{font-size:13px;font-weight:500}
-.dp-eta{display:flex;justify-content:space-between;background:var(--s2);border-radius:11px;padding:11px 14px;margin-bottom:12px;border:1px solid var(--border)}
+.dp-addr{font-size:13px;font-weight:500;color:var(--text)}
+.dp-eta{display:flex;justify-content:space-between;background:var(--s2);border-radius:11px;padding:10px 14px;margin-bottom:10px;border:1px solid var(--border)}
 .dp-eta-item{text-align:center}
 .dp-eta-val{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--cyan)}
-.dp-eta-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.08em}
+.dp-eta-lbl{font-family:var(--fm);font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
 .dp-btns{display:flex;gap:8px}
 .dp-main{flex:1;padding:12px;border-radius:11px;font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;border:none;background:var(--grad);color:var(--bg);transition:opacity .15s}
 .dp-main:hover{opacity:.85}
-.dp-chat{width:42px;padding:12px;border-radius:11px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.dp-chat{width:42px;padding:12px;border-radius:11px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .15s}
 .dp-chat:hover{border-color:rgba(0,212,255,.3);color:var(--cyan)}
 
 /* HISTORY */
@@ -116,40 +149,43 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 .hi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
 .hi-id{font-family:var(--fm);font-size:11px;color:var(--cyan)}
 .hi-earn{font-family:var(--fm);font-size:12px;color:var(--green)}
-.hi-rest{font-size:13px;font-weight:500}
-.hi-meta{font-family:var(--fm);font-size:10px;color:var(--muted);margin-top:3px}
+.hi-rest{font-size:13px;font-weight:500;color:var(--text)}
+.hi-meta{font-family:var(--fm);font-size:10px;color:var(--text2);margin-top:3px}
 
 /* EARNINGS */
 .earn-hero{margin:0 18px 14px;background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(123,47,255,.12));border:1px solid rgba(0,212,255,.2);border-radius:14px;padding:18px}
 .earn-lbl{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
 .earn-val{font-family:var(--fd);font-size:34px;font-weight:800;color:var(--cyan)}
-.earn-sub{font-size:11px;color:var(--muted);margin-top:5px}
+.earn-sub{font-size:11px;color:var(--text2);margin-top:5px}
 
 /* BOTTOM NAV */
 .bnav{height:74px;padding:0 12px 10px;background:rgba(6,6,14,.97);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
-.bn{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 14px;border-radius:9px;transition:all .15s;background:none;border:none;color:var(--muted)}
-.bn.active{color:var(--cyan)}
-.bn-icon{font-size:17px}.bn-lbl{font-family:var(--fm);font-size:8px;letter-spacing:.08em}
-.bn-badge{position:absolute;top:-3px;right:-3px;background:var(--red);color:white;font-family:var(--fm);font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.bn{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 14px;border-radius:9px;transition:all .15s;background:none;border:none;color:var(--muted);position:relative}
+.bn.active{color:var(--cyan);background:rgba(0,212,255,.06)}
+.bn-icon{font-size:17px}
+.bn-lbl{font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.bn-badge{position:absolute;top:2px;right:8px;background:var(--red);color:white;font-family:var(--fm);font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 
 /* TOAST */
-.toast{position:absolute;bottom:85px;left:14px;right:14px;z-index:200;background:var(--s1);border:1px solid rgba(0,212,255,.3);border-radius:10px;padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--fm);transform:translateY(120px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
-.toast.show{transform:translateY(0);opacity:1}.td{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0}
+.toast{position:absolute;bottom:85px;left:14px;right:14px;z-index:600;background:var(--s1);border:1px solid rgba(0,212,255,.3);border-radius:10px;padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--fm);color:var(--text);transform:translateY(120px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateY(0);opacity:1}
+.td{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0}
 .toast--err{border-color:rgba(255,59,59,.3)}.toast--err .td{background:var(--red);box-shadow:0 0 8px var(--red)}
 .toast--info{border-color:rgba(0,212,255,.3)}.toast--info .td{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.toast--ok{border-color:rgba(0,255,136,.3)}.toast--ok .td{background:var(--green)}
 
 /* AUTH */
 .auth-overlay{position:absolute;inset:0;background:var(--bg);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
 .auth-box{width:100%}
 .auth-tag{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
 .auth-title{font-family:var(--fd);font-size:24px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
-.auth-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.auth-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6}
 .afield{margin-bottom:12px}
 .afield label{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
 .ainput{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:var(--fb);font-size:14px;outline:none;transition:border-color .2s}
 .ainput:focus{border-color:rgba(0,212,255,.4)}.ainput::placeholder{color:var(--muted)}
 .aprimary{background:var(--grad);color:var(--bg);font-family:var(--fm);font-weight:600;font-size:12px;letter-spacing:.06em;padding:12px;border-radius:9px;border:none;cursor:pointer;width:100%;transition:opacity .2s;margin-top:4px}
-.aprimary:hover{opacity:.85}
+.aprimary:hover{opacity:.85}.aprimary:disabled{opacity:.4;cursor:not-allowed}
 .aerr{background:rgba(255,59,59,.1);border:1px solid rgba(255,59,59,.25);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--red);display:none;margin-bottom:10px}
 .aerr.show{display:block}
 .auth-skip{font-family:var(--fm);font-size:10px;color:var(--muted);text-align:center;margin-top:12px;cursor:pointer;letter-spacing:.06em}
@@ -163,7 +199,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
   <div class="notch"></div>
   <div class="statusbar">
     <div class="st-time" id="stime">--:--</div>
-    <div class="st-icons"><span>📶</span><span>🔋</span></div>
+    <div class="st-icons">📶 🔋</div>
   </div>
 
   <!-- AUTH -->
@@ -171,7 +207,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
     <div class="auth-box">
       <div class="auth-tag">Atlas Delivery</div>
       <div class="auth-title">Rider Login</div>
-      <div class="auth-sub">Logga in för att se uppdrag och spåra dina intäkter.</div>
+      <div class="auth-sub">Logga in för att se uppdrag och spåra dina intäkter i realtid.</div>
       <div class="aerr" id="aerr"></div>
       <div class="afield"><label>E-post</label><input class="ainput" id="aEmail" type="email" placeholder="rider@atlasdel.se"></div>
       <div class="afield"><label>Lösenord</label><input class="ainput" id="aPwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
@@ -180,7 +216,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
     </div>
   </div>
 
-  <!-- NEW ORDER BANNER -->
+  <!-- BANNER -->
   <div class="new-banner" id="newBanner">
     <div class="nb-icon">🔔</div>
     <div class="nb-info">
@@ -217,27 +253,29 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 
     <!-- DELIVERY -->
     <div id="pageDelivery" class="delivery-screen">
-      <div class="map-area">
-        <div class="map-grid"></div>
-        <svg class="route-svg" viewBox="0 0 393 270" preserveAspectRatio="none">
-          <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#FF6B35"/><stop offset="100%" style="stop-color:#00FF88"/></linearGradient></defs>
-          <path d="M 80 210 C 150 190 210 110 290 80" fill="none" stroke="url(#rg)" stroke-width="3" stroke-dasharray="8 4" opacity=".7">
-            <animate attributeName="stroke-dashoffset" from="0" to="-24" dur=".8s" repeatCount="indefinite"/>
-          </path>
-        </svg>
-        <div class="map-pin" style="left:20%;top:72%"><div class="map-pin-icon">🍽️</div><div class="map-pin-lbl">HÄMTNING</div></div>
-        <div class="map-pin" style="left:74%;top:22%"><div class="map-pin-icon">📍</div><div class="map-pin-lbl">LEVERANS</div></div>
-        <div class="rdot" id="rdot" style="left:38%;top:52%"></div>
+      <div class="gps-banner" id="gpsBanner" style="display:none">
+        <span style="font-size:18px">📍</span>
+        <div class="gps-banner-txt">Aktivera GPS för att dela din position med kunden i realtid.</div>
+        <button class="gps-btn" onclick="requestGPS()">Aktivera GPS</button>
+      </div>
+      <div id="lmap"></div>
+      <div class="map-legend">
+        <div class="ml-item"><div class="ml-dot" style="background:var(--cyan)"></div>Du (rider)</div>
+        <div class="ml-item"><div class="ml-dot" style="background:var(--orange)"></div>Restaurang</div>
+        <div class="ml-item"><div class="ml-dot" style="background:var(--green)"></div>Kund</div>
       </div>
       <div class="dpanel">
         <div class="dp-step">
           <div class="dp-num" id="dpNum">1</div>
-          <div><div class="dp-lbl" id="dpLbl">HÄMTA ORDER</div><div class="dp-addr" id="dpAddr">—</div></div>
+          <div>
+            <div class="dp-lbl" id="dpLbl">HÄMTA ORDER</div>
+            <div class="dp-addr" id="dpAddr">—</div>
+          </div>
         </div>
         <div class="dp-eta">
-          <div class="dp-eta-item"><div class="dp-eta-val" id="dpEta">—</div><div class="dp-eta-lbl">MIN KVAR</div></div>
-          <div class="dp-eta-item"><div class="dp-eta-val" id="dpKm">—</div><div class="dp-eta-lbl">KM</div></div>
-          <div class="dp-eta-item"><div class="dp-eta-val" id="dpEarn" style="color:var(--green)">+—</div><div class="dp-eta-lbl">KR</div></div>
+          <div class="dp-eta-item"><div class="dp-eta-val" id="dpEta">—</div><div class="dp-eta-lbl">Min kvar</div></div>
+          <div class="dp-eta-item"><div class="dp-eta-val" id="dpKm">—</div><div class="dp-eta-lbl">Km</div></div>
+          <div class="dp-eta-item"><div class="dp-eta-val" id="dpEarn" style="color:var(--green)">+—</div><div class="dp-eta-lbl">Kr</div></div>
         </div>
         <div class="dp-btns">
           <button class="dp-main" id="dpMainBtn" onclick="nextStep()">Framme — Hämtar order</button>
@@ -248,27 +286,32 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 
     <!-- HISTORY -->
     <div id="pageHistory" style="display:none">
-      <div class="rh" style="padding-bottom:8px"><div class="rh-greeting">// LEVERANSHISTORIK</div><div class="rh-name" style="font-size:18px">Denna session</div></div>
+      <div class="rh" style="padding-bottom:8px">
+        <div class="rh-greeting">// LEVERANSHISTORIK</div>
+        <div class="rh-name" style="font-size:18px">Denna session</div>
+      </div>
       <div id="histList"></div>
     </div>
 
     <!-- EARNINGS -->
     <div id="pageEarnings" style="display:none">
-      <div class="rh" style="padding-bottom:8px"><div class="rh-greeting">// INTÄKTER</div><div class="rh-name" style="font-size:18px">Din plånbok</div></div>
+      <div class="rh" style="padding-bottom:8px">
+        <div class="rh-greeting">// INTÄKTER</div>
+        <div class="rh-name" style="font-size:18px">Din plånbok</div>
+      </div>
       <div id="earningsContent"></div>
     </div>
 
-  </div><!-- /screen -->
+  </div>
 
   <!-- BOTTOM NAV -->
   <div class="bnav">
-    <button class="bn active" id="bn0" onclick="showPage('home',0)"><div class="bn-icon">🏠</div><div class="bn-lbl">HEM</div></button>
-    <button class="bn" id="bn1" onclick="showPage('delivery',1)"><div class="bn-icon" style="position:relative">🛵<span class="bn-badge" id="activeBadge" style="display:none">!</span></div><div class="bn-lbl">LEVERANS</div></button>
-    <button class="bn" id="bn2" onclick="showPage('history',2)"><div class="bn-icon">📋</div><div class="bn-lbl">HISTORIK</div></button>
-    <button class="bn" id="bn3" onclick="showPage('earnings',3)"><div class="bn-icon">💰</div><div class="bn-lbl">INTÄKTER</div></button>
+    <button class="bn active" id="bn0" onclick="showPage('home',0)"><div class="bn-icon">🏠</div><div class="bn-lbl">Hem</div></button>
+    <button class="bn" id="bn1" onclick="showPage('delivery',1)"><div class="bn-icon" style="position:relative">🛵<span class="bn-badge" id="activeBadge" style="display:none">!</span></div><div class="bn-lbl">Leverans</div></button>
+    <button class="bn" id="bn2" onclick="showPage('history',2)"><div class="bn-icon">📋</div><div class="bn-lbl">Historik</div></button>
+    <button class="bn" id="bn3" onclick="showPage('earnings',3)"><div class="bn-icon">💰</div><div class="bn-lbl">Intäkter</div></button>
   </div>
 
-  <!-- TOAST -->
   <div class="toast" id="toast"><div class="td"></div><span id="toastMsg">—</span></div>
 </div>
 
@@ -279,29 +322,51 @@ const SB = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZndGRzd3BsenVoYmhobG14cmdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTY2ODIsImV4cCI6MjA4ODU5MjY4Mn0.82sk-40cQo7NxeRWUgthTzp_fk1TlBcqPchrBGGIFnU'
 );
 
-// ── State ─────────────────────────────────────────────────────
-let activeRiderId = null;
-let riders        = [];
-let activeOrderId = null;
-let deliveryStep  = 0;
-let currentNav    = 0;
+// ── State ────────────────────────────────────────────────────
+let activeRiderId   = null;
+let riders          = [];
+let activeOrderId   = null;
+let activeOrderData = null;
+let deliveryStep    = 0;
+let currentNav      = 0;
 let availableOrders = [];
 
-// ── Clock ─────────────────────────────────────────────────────
+// ── Map state ────────────────────────────────────────────────
+let map          = null;
+let riderMarker  = null;
+let restMarker   = null;
+let custMarker   = null;
+let routeLine    = null;
+let gpsWatchId   = null;
+let gpsEnabled   = false;
+let riderLatLng  = null;
+
+const STOCKHOLM = [59.3293, 18.0686];
+
+// Approximate coords for seed restaurants (Stockholm)
+const REST_COORDS = {
+  '11111111-0000-0000-0000-000000000001': [59.3400, 18.0600],
+  '11111111-0000-0000-0000-000000000002': [59.3175, 18.0590],
+  '11111111-0000-0000-0000-000000000003': [59.3245, 18.0720],
+  '11111111-0000-0000-0000-000000000004': [59.3328, 18.0460],
+};
+
+// ── Clock ────────────────────────────────────────────────────
 setInterval(()=>{
   const n=new Date();
-  document.getElementById('stime').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+  document.getElementById('stime').textContent=
+    n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
 },1000);
 
-// ── AUTH ──────────────────────────────────────────────────────
+// ── AUTH ─────────────────────────────────────────────────────
 async function doLogin(){
   const email=document.getElementById('aEmail').value.trim();
   const pwd=document.getElementById('aPwd').value;
   const btn=document.getElementById('loginBtn');
   const err=document.getElementById('aerr');
-  btn.disabled=true; btn.textContent='LOGGAR IN...'; err.className='aerr';
+  btn.disabled=true;btn.textContent='LOGGAR IN...';err.className='aerr';
   const{error}=await SB.auth.signInWithPassword({email,password:pwd});
-  if(error){err.textContent=error.message;err.className='aerr show';btn.disabled=false;btn.textContent='LOGGA IN';return}
+  if(error){err.textContent=error.message;err.className='aerr show';btn.disabled=false;btn.textContent='LOGGA IN';return;}
   document.getElementById('authOv').style.display='none';
   await loadAll();
 }
@@ -310,36 +375,21 @@ async function skipAuth(){
   await loadAll();
 }
 
-// ── LOAD ──────────────────────────────────────────────────────
+// ── LOAD ─────────────────────────────────────────────────────
 async function loadAll(){
   const{data,error}=await SB.from('riders').select('*').order('name');
-  if(error){toast('DB-fel: '+error.message,'err');return}
+  if(error){toast('DB-fel: '+error.message,'err');return;}
   riders=data||[];
-  if(!riders.length){toast('Inga bud i DB','err');return}
-
+  if(!riders.length){toast('Inga bud i DB','err');return;}
   const sel=document.getElementById('riderSel');
   sel.innerHTML=riders.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
   activeRiderId=riders[0].id;
   renderHome();
 
-  // Realtime: watch for new "ready" orders
   SB.channel('rider-rt')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'},p=>{
-      // New order placed — may become available soon
-    })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders'},p=>{
-      if(p.new.status==='ready'&&!p.new.rider_id){
-        onAvailableOrder(p.new);
-      }
-      // If this is our active order being updated externally
-      if(p.new.rider_id===activeRiderId&&p.new.status==='picked'&&!activeOrderId){
-        activeOrderId=p.new.id;
-        document.getElementById('activeBadge').style.display='';
-      }
-      if(p.new.id===activeOrderId&&p.new.status==='delivered'){
-        activeOrderId=null;
-        document.getElementById('activeBadge').style.display='none';
-      }
+      if(p.new.status==='ready'&&!p.new.rider_id) onAvailableOrder(p.new);
+      if(p.new.id===activeOrderId) activeOrderData=p.new;
       refreshAvailOrders();
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'riders'},p=>{
@@ -348,24 +398,20 @@ async function loadAll(){
     })
     .subscribe();
 
-  // Load available orders (status=ready, no rider)
   await refreshAvailOrders();
 }
 
 async function refreshAvailOrders(){
-  const{data}=await SB.from('orders').select('*,restaurants(name,emoji)').eq('status','ready').is('rider_id',null);
+  const{data}=await SB.from('orders').select('*,restaurants(name,emoji,id)').eq('status','ready').is('rider_id',null);
   availableOrders=data||[];
   if(currentNav===0) renderAvailableOrders();
 }
 
 function switchRider(id){
-  activeRiderId=id;
-  activeOrderId=null;
-  deliveryStep=0;
-  renderHome();
+  activeRiderId=id;activeOrderId=null;activeOrderData=null;deliveryStep=0;renderHome();
 }
 
-// ── HOME ──────────────────────────────────────────────────────
+// ── HOME ─────────────────────────────────────────────────────
 function renderHome(){
   const rider=riders.find(r=>r.id===activeRiderId);
   if(!rider)return;
@@ -376,9 +422,9 @@ function renderHome(){
   otxt.textContent=rider.is_online?'Online — redo att leverera':'Offline — inte tillgänglig';
   otxt.style.color=rider.is_online?'var(--green)':'var(--muted)';
   document.getElementById('statsMini').innerHTML=`
-    <div class="sm"><div class="sm-val">${rider.orders_today}</div><div class="sm-lbl">IDAG</div></div>
-    <div class="sm"><div class="sm-val" style="color:var(--green)">${Number(rider.earnings_today).toFixed(0)} kr</div><div class="sm-lbl">INTÄKTER</div></div>
-    <div class="sm"><div class="sm-val">⭐${rider.rating}</div><div class="sm-lbl">BETYG</div></div>`;
+    <div class="sm"><div class="sm-val">${rider.orders_today}</div><div class="sm-lbl">Idag</div></div>
+    <div class="sm"><div class="sm-val" style="color:var(--green)">${Number(rider.earnings_today).toFixed(0)} kr</div><div class="sm-lbl">Intäkter</div></div>
+    <div class="sm"><div class="sm-val">⭐ ${rider.rating}</div><div class="sm-lbl">Betyg</div></div>`;
   renderAvailableOrders();
 }
 
@@ -390,7 +436,7 @@ function renderAvailableOrders(){
     return;
   }
   if(!availableOrders.length){
-    el.innerHTML='<div class="no-orders"><div class="no-icon">🛵</div><div class="no-txt">VÄNTAR PÅ UPPDRAG...<br><span style="opacity:.5;font-size:9px;margin-top:4px;display:block">Restauranger markerar ordrar klara</span></div></div>';
+    el.innerHTML='<div class="no-orders"><div class="no-icon">🛵</div><div class="no-txt">VÄNTAR PÅ UPPDRAG...<br><span style="font-size:9px;opacity:.6">Restauranger markerar ordrar klara</span></div></div>';
     return;
   }
   el.innerHTML=availableOrders.map(o=>orderCardHTML(o)).join('');
@@ -400,56 +446,156 @@ function orderCardHTML(o){
   const earn=Math.round(Number(o.total)*.15);
   const km=(0.5+Math.random()*1.5).toFixed(1);
   const mins=Math.round(parseFloat(km)*5+5);
-  const rest=o.restaurants||{name:o.restaurant_id,emoji:'🍽️'};
+  const rest=o.restaurants||{name:'—',emoji:'🍽️'};
   return`<div class="ocard">
     <div class="oc-head"><div class="oc-id">${o.id}</div><div class="oc-earn">+${earn} kr</div></div>
     <div class="oc-rest">${rest.emoji} ${rest.name}</div>
     <div class="oc-route">
-      <div class="oc-route-item"><div class="rc-dot" style="background:var(--orange)"></div><div><div>Hämta</div><div class="oc-addr">${rest.name}</div></div></div>
+      <div class="oc-route-item"><div class="rc-dot" style="background:var(--orange)"></div><div><div>Hämta hos</div><div class="oc-addr">${rest.name}</div></div></div>
       <div style="width:1px;height:8px;background:var(--border);margin-left:4px"></div>
       <div class="oc-route-item"><div class="rc-dot" style="background:var(--green)"></div><div><div>Leverera till</div><div class="oc-addr">${o.address}</div></div></div>
     </div>
-    <div class="oc-meta"><div class="oc-meta-item">🕐 ~${mins} min</div><div class="oc-meta-item">📍 ${km} km</div><div class="oc-meta-item">📦 ${Number(o.total).toFixed(0)} kr</div></div>
+    <div class="oc-meta">
+      <div class="oc-meta-item">🕐 ~${mins} min</div>
+      <div class="oc-meta-item">📍 ${km} km</div>
+      <div class="oc-meta-item">📦 ${Number(o.total).toFixed(0)} kr</div>
+    </div>
     <div class="oc-acts">
-      <button class="oc-btn oc-accept" onclick="acceptOrder('${o.id}',${earn})">Acceptera uppdraget</button>
+      <button class="oc-btn oc-accept" onclick="acceptOrder('${o.id}',${earn},'${o.restaurant_id}')">Acceptera uppdraget</button>
       <button class="oc-btn oc-decline" onclick="declineOrder('${o.id}')">✕</button>
     </div>
   </div>`;
 }
 
-// ── ACCEPT / DECLINE ──────────────────────────────────────────
-async function acceptOrder(orderId, earn){
-  // Assign rider_id and update status to 'picked'
+// ── ACCEPT ───────────────────────────────────────────────────
+async function acceptOrder(orderId,earn,restId){
   const{error}=await SB.from('orders').update({rider_id:activeRiderId,status:'picked'}).eq('id',orderId);
-  if(error){toast(error.message,'err');return}
-  // Update rider status
+  if(error){toast(error.message,'err');return;}
   await SB.from('riders').update({status:'delivering'}).eq('id',activeRiderId);
-
   activeOrderId=orderId;
+  activeOrderData={id:orderId,restaurant_id:restId};
   deliveryStep=0;
   document.getElementById('activeBadge').style.display='';
   availableOrders=availableOrders.filter(o=>o.id!==orderId);
   showPage('delivery',1);
-  toast(`✓ Uppdrag accepterat!`,'info');
+  toast('✓ Uppdrag accepterat!','info');
 }
-
 function declineOrder(orderId){
   availableOrders=availableOrders.filter(o=>o.id!==orderId);
   renderAvailableOrders();
 }
 
-// ── DELIVERY ──────────────────────────────────────────────────
+// ── GPS ──────────────────────────────────────────────────────
+function requestGPS(){
+  if(!navigator.geolocation){toast('GPS inte tillgänglig','err');return;}
+  document.getElementById('gpsBanner').style.display='none';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    gpsEnabled=true;
+    riderLatLng=[pos.coords.latitude,pos.coords.longitude];
+    moveRiderMarker(riderLatLng);
+    startGPSWatch();
+    toast('GPS aktiverat! 📍','ok');
+  }, ()=>{
+    // fallback: use Stockholm
+    riderLatLng=[...STOCKHOLM];
+    moveRiderMarker(riderLatLng);
+    toast('GPS ej tillgänglig — använder Stockholm','info');
+  },{enableHighAccuracy:true,timeout:8000});
+}
+
+function startGPSWatch(){
+  if(gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+  gpsWatchId=navigator.geolocation.watchPosition(pos=>{
+    riderLatLng=[pos.coords.latitude,pos.coords.longitude];
+    moveRiderMarker(riderLatLng);
+    // Persist to DB so customer map can read it
+    SB.from('riders').update({lat:pos.coords.latitude,lng:pos.coords.longitude}).eq('id',activeRiderId);
+  },null,{enableHighAccuracy:true,maximumAge:4000});
+}
+
+function moveRiderMarker(latlng){
+  if(!map)return;
+  if(riderMarker){
+    riderMarker.setLatLng(latlng);
+  } else {
+    const icon=L.divIcon({className:'',html:'<div class="rider-marker">🛵</div>',iconSize:[36,36],iconAnchor:[18,18]});
+    riderMarker=L.marker(latlng,{icon,zIndexOffset:1000}).addTo(map);
+    riderMarker.bindPopup('<b>Du är här</b>');
+  }
+  drawRoute();
+}
+
+// ── MAP ──────────────────────────────────────────────────────
+function initMap(){
+  if(map)return;
+  map=L.map('lmap',{center:STOCKHOLM,zoom:13,zoomControl:true,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+  L.control.attribution({position:'bottomright',prefix:''}).addTo(map);
+}
+
+function placeMapMarkers(order){
+  if(!map){initMap();}
+
+  const restCoords=REST_COORDS[order.restaurant_id]||[STOCKHOLM[0]+0.005,STOCKHOLM[1]+0.005];
+  // Slightly offset customer from restaurant for demo
+  const custCoords=[STOCKHOLM[0]-0.009,STOCKHOLM[1]+0.011];
+
+  // Restaurant
+  if(restMarker)map.removeLayer(restMarker);
+  const restIcon=L.divIcon({className:'',html:'<div class="rest-marker">🍽️</div>',iconSize:[34,34],iconAnchor:[17,34]});
+  restMarker=L.marker(restCoords,{icon:restIcon}).addTo(map);
+  restMarker.bindPopup(`<b>Restaurang</b><br>${order.restaurants?.name||'—'}`);
+
+  // Customer
+  if(custMarker)map.removeLayer(custMarker);
+  const custIcon=L.divIcon({className:'',html:'<div class="cust-marker">📍</div>',iconSize:[34,34],iconAnchor:[17,34]});
+  custMarker=L.marker(custCoords,{icon:custIcon}).addTo(map);
+  custMarker.bindPopup(`<b>Kund</b><br>${order.customer_name||order.address}`);
+
+  // Rider (GPS or Stockholm)
+  const rPos=riderLatLng||STOCKHOLM;
+  if(!riderMarker){
+    const rIcon=L.divIcon({className:'',html:'<div class="rider-marker">🛵</div>',iconSize:[36,36],iconAnchor:[18,18]});
+    riderMarker=L.marker(rPos,{icon:rIcon,zIndexOffset:1000}).addTo(map);
+    riderMarker.bindPopup('<b>Du är här</b>');
+  } else {
+    riderMarker.setLatLng(rPos);
+  }
+
+  // Fit all 3 in view
+  map.fitBounds(L.latLngBounds([rPos,restCoords,custCoords]),{padding:[44,44]});
+  drawRoute();
+
+  // Show GPS banner if not yet enabled
+  if(!gpsEnabled) document.getElementById('gpsBanner').style.display='flex';
+
+  setTimeout(()=>map.invalidateSize(),120);
+}
+
+function drawRoute(){
+  if(!map||!restMarker||!custMarker)return;
+  const rPos=riderMarker?riderMarker.getLatLng():STOCKHOLM;
+  const target=deliveryStep===0?restMarker.getLatLng():custMarker.getLatLng();
+  const color=deliveryStep===0?'#FF6B35':'#00FF88';
+  if(routeLine)map.removeLayer(routeLine);
+  routeLine=L.polyline([rPos,target],{color,weight:3,dashArray:'8 5',opacity:.85}).addTo(map);
+}
+
+// ── DELIVERY ─────────────────────────────────────────────────
 async function renderDelivery(){
   if(!activeOrderId){
+    initMap();
+    setTimeout(()=>map.invalidateSize(),120);
     document.getElementById('dpAddr').textContent='Ingen aktiv order';
-    document.getElementById('dpMainBtn').textContent='Gå till hem';
+    document.getElementById('dpMainBtn').textContent='Gå tillbaka';
     document.getElementById('dpEta').textContent='—';
     document.getElementById('dpKm').textContent='—';
     document.getElementById('dpEarn').textContent='+—';
     return;
   }
-  const{data:order}=await SB.from('orders').select('*,restaurants(name,emoji)').eq('id',activeOrderId).single();
+  const{data:order}=await SB.from('orders').select('*,restaurants(name,emoji,id)').eq('id',activeOrderId).single();
   if(!order)return;
+  activeOrderData=order;
   const earn=Math.round(Number(order.total)*.15);
   document.getElementById('dpEarn').textContent='+'+earn;
   document.getElementById('dpKm').textContent=(0.6+Math.random()).toFixed(1);
@@ -457,28 +603,25 @@ async function renderDelivery(){
     document.getElementById('dpNum').textContent='1';
     document.getElementById('dpLbl').textContent='HÄMTA ORDER';
     document.getElementById('dpAddr').textContent=(order.restaurants?.name||'Restaurangen')+' — Gå dit för att hämta';
-    document.getElementById('dpMainBtn').textContent='Framme — Hämtar order';
-    document.getElementById('dpEta').textContent='7';
-    document.getElementById('rdot').style.left='38%';
-    document.getElementById('rdot').style.top='52%';
+    document.getElementById('dpMainBtn').textContent='Framme — Hämtar order ✓';
+    document.getElementById('dpEta').textContent=''+(7+Math.floor(Math.random()*5));
   } else {
     document.getElementById('dpNum').textContent='2';
-    document.getElementById('dpLbl').textContent='LEVERERA';
-    document.getElementById('dpAddr').textContent=order.address+' — '+order.customer_name;
+    document.getElementById('dpLbl').textContent='LEVERERA TILL KUND';
+    document.getElementById('dpAddr').textContent=order.address+' · '+order.customer_name;
     document.getElementById('dpMainBtn').textContent='Leverans klar ✓';
-    document.getElementById('dpEta').textContent='11';
-    document.getElementById('rdot').style.left='66%';
-    document.getElementById('rdot').style.top='36%';
+    document.getElementById('dpEta').textContent=''+(8+Math.floor(Math.random()*6));
   }
+  placeMapMarkers(order);
 }
 
 async function nextStep(){
-  if(!activeOrderId){showPage('home',0);return}
+  if(!activeOrderId){showPage('home',0);return;}
   if(deliveryStep===0){
     deliveryStep=1;
-    renderDelivery();
+    await renderDelivery();
+    toast('📦 Order hämtad — nu till kunden!','info');
   } else {
-    // Complete delivery
     const{data:order}=await SB.from('orders').select('total').eq('id',activeOrderId).single();
     const earn=Math.round(Number(order?.total||0)*.15);
     await SB.from('orders').update({status:'delivered'}).eq('id',activeOrderId);
@@ -488,47 +631,51 @@ async function nextStep(){
       orders_today:(rider?.orders_today||0)+1,
       earnings_today:Number(rider?.earnings_today||0)+earn,
     }).eq('id',activeRiderId);
-    // Update local state
     riders=riders.map(r=>r.id===activeRiderId?{...r,orders_today:r.orders_today+1,earnings_today:Number(r.earnings_today)+earn,status:'idle'}:r);
-    activeOrderId=null;
-    deliveryStep=0;
+    if(gpsWatchId){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;}
+    if(restMarker){map.removeLayer(restMarker);restMarker=null;}
+    if(custMarker){map.removeLayer(custMarker);custMarker=null;}
+    if(routeLine){map.removeLayer(routeLine);routeLine=null;}
+    activeOrderId=null;activeOrderData=null;deliveryStep=0;
     document.getElementById('activeBadge').style.display='none';
     showPage('home',0);
-    showBanner(`✅ Levererad! +${earn} kr tillagda.`);
+    showBanner('🎉 Levererad! +'+earn+' kr tillagda.');
     renderHome();
   }
 }
 
-// ── TOGGLE ONLINE ─────────────────────────────────────────────
+// ── TOGGLE ONLINE ────────────────────────────────────────────
 async function toggleOnline(){
   const rider=riders.find(r=>r.id===activeRiderId);
   if(!rider)return;
-  const{error}=await SB.from('riders').update({is_online:!rider.is_online,status:!rider.is_online?'idle':'offline'}).eq('id',activeRiderId);
-  if(error){toast(error.message,'err');return}
-  riders=riders.map(r=>r.id===activeRiderId?{...r,is_online:!rider.is_online,status:!rider.is_online?'idle':'offline'}:r);
+  const newOnline=!rider.is_online;
+  const{error}=await SB.from('riders').update({is_online:newOnline,status:newOnline?'idle':'offline'}).eq('id',activeRiderId);
+  if(error){toast(error.message,'err');return;}
+  riders=riders.map(r=>r.id===activeRiderId?{...r,is_online:newOnline,status:newOnline?'idle':'offline'}:r);
   renderHome();
-  if(!rider.is_online) await refreshAvailOrders();
+  if(newOnline){await refreshAvailOrders();toast('Du är online 🟢','ok');}
+  else toast('Du är offline','');
 }
 
-// ── HISTORY ───────────────────────────────────────────────────
+// ── HISTORY ──────────────────────────────────────────────────
 async function renderHistory(){
   const el=document.getElementById('histList');
-  el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px"><div style="width:16px;height:16px;border:2px solid rgba(0,212,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px"></div>LADDAR...</div>';
+  el.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px"><div style="width:16px;height:16px;border:2px solid rgba(0,212,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px"></div>LADDAR...</div>';
   const{data}=await SB.from('orders').select('*,restaurants(name,emoji)').eq('rider_id',activeRiderId).eq('status','delivered').order('updated_at',{ascending:false}).limit(30);
   const orders=data||[];
-  if(!orders.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px">INGA LEVERANSER ÄN</div>';return}
+  if(!orders.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px">INGA LEVERANSER ÄN</div>';return;}
   el.innerHTML=orders.map(o=>{
     const e=Math.round(Number(o.total)*.15);
     const rest=o.restaurants||{name:'—',emoji:'🍽️'};
     return`<div class="hist-item">
       <div class="hi-top"><div class="hi-id">${o.id}</div><div class="hi-earn">+${e} kr</div></div>
       <div class="hi-rest">${rest.emoji} ${rest.name}</div>
-      <div class="hi-meta">📍 ${o.address} • 🕐 ${new Date(o.created_at).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="hi-meta">📍 ${o.address} · 🕐 ${new Date(o.created_at).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})}</div>
     </div>`;
   }).join('');
 }
 
-// ── EARNINGS ──────────────────────────────────────────────────
+// ── EARNINGS ─────────────────────────────────────────────────
 async function renderEarnings(){
   const rider=riders.find(r=>r.id===activeRiderId);
   const{data:delivered}=await SB.from('orders').select('total,created_at').eq('rider_id',activeRiderId).eq('status','delivered');
@@ -537,53 +684,51 @@ async function renderEarnings(){
     <div class="earn-hero">
       <div class="earn-lbl">Totalt idag</div>
       <div class="earn-val">${Number(rider?.earnings_today||0).toFixed(0)} kr</div>
-      <div class="earn-sub">${rider?.orders_today||0} leveranser</div>
+      <div class="earn-sub">${rider?.orders_today||0} leveranser genomförda</div>
     </div>
     <div class="earn-hero" style="background:rgba(0,255,136,.05);border-color:rgba(0,255,136,.15)">
       <div class="earn-lbl">Denna session</div>
       <div class="earn-val" style="font-size:26px">${sessionEarn} kr</div>
-      <div class="earn-sub">${(delivered||[]).length} leveranser genomförda</div>
+      <div class="earn-sub">${(delivered||[]).length} leveranser totalt</div>
     </div>
-    ${!(delivered||[]).length?'<div style="padding:28px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px">GENOMFÖR LEVERANSER FÖR ATT SE INTÄKTER</div>':''}`;
+    ${!(delivered||[]).length?'<div style="padding:28px;text-align:center;color:var(--muted);font-family:var(--fm);font-size:11px;letter-spacing:.06em">GENOMFÖR LEVERANSER FÖR ATT SE INTÄKTER</div>':''}`;
 }
 
-// ── PAGES ─────────────────────────────────────────────────────
+// ── PAGES ────────────────────────────────────────────────────
 function showPage(name,idx){
   document.getElementById('pageHome').style.display='none';
-  const pd=document.getElementById('pageDelivery');
-  pd.style.display='none'; pd.classList.remove('show');
+  const pd=document.getElementById('pageDelivery');pd.style.display='none';pd.classList.remove('show');
   document.getElementById('pageHistory').style.display='none';
   document.getElementById('pageEarnings').style.display='none';
-
   currentNav=idx;
   document.querySelectorAll('.bn').forEach((b,i)=>b.classList.toggle('active',i===idx));
-
-  if(name==='home'){document.getElementById('pageHome').style.display='block';renderHome()}
-  else if(name==='delivery'){pd.style.display='flex';pd.classList.add('show');renderDelivery()}
-  else if(name==='history'){document.getElementById('pageHistory').style.display='block';renderHistory()}
-  else if(name==='earnings'){document.getElementById('pageEarnings').style.display='block';renderEarnings()}
+  if(name==='home'){document.getElementById('pageHome').style.display='block';renderHome();}
+  else if(name==='delivery'){pd.style.display='flex';pd.classList.add('show');renderDelivery();}
+  else if(name==='history'){document.getElementById('pageHistory').style.display='block';renderHistory();}
+  else if(name==='earnings'){document.getElementById('pageEarnings').style.display='block';renderEarnings();}
 }
 
-// ── BANNER ────────────────────────────────────────────────────
+// ── BANNER ───────────────────────────────────────────────────
 function onAvailableOrder(order){
   const rider=riders.find(r=>r.id===activeRiderId);
   if(!rider?.is_online)return;
   availableOrders.push(order);
-  showBanner(`${order.restaurant_id} → ${order.address}`);
+  const rest=order.restaurants;
+  showBanner(`${rest?.emoji||'🍽️'} ${rest?.name||'—'} → ${order.address}`);
   if(currentNav===0) renderAvailableOrders();
 }
 function showBanner(msg){
   document.getElementById('bannerMsg').textContent=msg;
   const el=document.getElementById('newBanner');
-  el.classList.add('show');
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),5000);
+  el.classList.add('show');clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),5000);
 }
 function dismissBanner(){
   document.getElementById('newBanner').classList.remove('show');
   showPage('home',0);
 }
 
-// ── TOAST ─────────────────────────────────────────────────────
+// ── TOAST ────────────────────────────────────────────────────
 let _tt;
 function toast(msg,type=''){
   document.getElementById('toastMsg').textContent=msg;

@@ -377,11 +377,16 @@ async function loadAvail(){
   }).join('');
 }
 async function acceptOrder(oid){
+  // First verify the order is still available (status=ready, no rider)
+  const{data:check,error:cerr}=await SB.from('orders').select('id,status,rider_id').eq('id',oid).single();
+  if(cerr||!check){toast('Kunde inte hämta order');return}
+  if(check.status!=='ready'||check.rider_id){toast('Uppdraget är inte längre tillgängligt');return}
   const rname=RIDER?.name||U.email;
-  const{error}=await SB.from('orders').update({rider_id:U.id,rider_name:rname,status:'picked'}).eq('id',oid).eq('status','ready');
-  if(error){toast('Uppdraget togs av annan bud');return}
+  // Update without the RLS-blocking status guard
+  const{error}=await SB.from('orders').update({rider_id:U.id,rider_name:rname,status:'picked'}).eq('id',oid);
+  if(error){toast('Fel: '+error.message);return}
   if(RIDER?.id)await SB.from('riders').update({deliveries:(RIDER.deliveries||0)+1}).eq('id',RIDER.id);
-  toast('✓ Uppdrag accepterat!');await loadMyOrders();setPage('delivery',document.querySelectorAll('.nb')[1]);loadAvail();
+  toast('✓ Uppdrag accepterat!');closeOv();await loadMyOrders();setPage('delivery',document.querySelectorAll('.nb')[1]);loadAvail();
 }
 function renderActive(){
   if(!ACTIVE)return;
